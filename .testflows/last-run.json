@@ -1,0 +1,38 @@
+{
+  "failed" : 0,
+  "failed_names" : [
+
+  ],
+  "generated_at" : "2026-09-08T22:23:56Z",
+  "passed" : 2,
+  "results" : [
+    {
+      "display_name" : "program-registry",
+      "duration_seconds" : 0.001212000846862793,
+      "name" : "program-registry",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "program",
+        "registry",
+        "type-erasure"
+      ]
+    },
+    {
+      "display_name" : "program-registration-composition",
+      "duration_seconds" : 0.00027501583099365234,
+      "name" : "program-registration-composition",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "program",
+        "provider",
+        "registration",
+        "set"
+      ]
+    }
+  ],
+  "skipped" : 0,
+  "title" : "AgenticPrograms flow tests",
+  "total" : 2
+}

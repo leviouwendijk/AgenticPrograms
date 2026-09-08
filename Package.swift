@@ -14,6 +14,12 @@ let package = Package(
                 "AgenticPrograms",
             ]
         ),
+        .executable(
+            name: "aprogtest",
+            targets: [
+                "AgenticProgramsTestFlows",
+            ]
+        ),
     ],
     dependencies: [
         .package(
@@ -26,6 +32,10 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/leviouwendijk/Schema.git",
+            branch: "master"
+        ),
+        .package(
+            url: "https://github.com/leviouwendijk/TestFlows.git",
             branch: "master"
         ),
     ],
@@ -44,6 +54,20 @@ let package = Package(
                 .product(
                     name: "Schema",
                     package: "Schema"
+                ),
+            ]
+        ),
+        .executableTarget(
+            name: "AgenticProgramsTestFlows",
+            dependencies: [
+                "AgenticPrograms",
+                .product(
+                    name: "Agentic",
+                    package: "Agentic"
+                ),
+                .product(
+                    name: "TestFlows",
+                    package: "TestFlows"
                 ),
             ]
         ),
