@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c452798d7a02cef14a811a4cca0c590a773db67b"
+        "revision" : "b4271a89701c5bf2b8f96d1c64497c9ec20c3864"
       }
     },
     {
@@ -92,21 +92,12 @@
       }
     },
     {
-      "identity" : "swim",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/Swim",
-      "state" : {
-        "branch" : "master",
-        "revision" : "5d78adc0f34d4b62e35a92725fda2ab444bb4e99"
-      }
-    },
-    {
       "identity" : "terminal",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "7cbe455cf097861dcac76a61ab9945cf0557a0f4"
+        "revision" : "0b63af5e4049793948d3fe3dbdd47d2b5958250d"
       }
     },
     {

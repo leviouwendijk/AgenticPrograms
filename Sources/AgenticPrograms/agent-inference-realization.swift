@@ -52,7 +52,7 @@ public struct AgentInferenceRealization:
 {
     public var strategy: AgentInferenceStrategyIdentifier
     public var adapter: AgentInferenceAdapterIdentifier?
-    public var modelPolicy: AgentModelUsePolicy
+    public var modelSelection: AgentModelSelection
     public var instructions: String
     public var demonstrations: [AgentInferenceDemonstration]
     public var generation: AgentGenerationConfiguration
@@ -61,7 +61,7 @@ public struct AgentInferenceRealization:
 
     public init(
         strategy: AgentInferenceStrategyIdentifier,
-        modelPolicy: AgentModelUsePolicy,
+        modelSelection: AgentModelSelection,
         instructions: String,
         budget: AgentInferenceBudget,
         adapter: AgentInferenceAdapterIdentifier? = nil,
@@ -71,7 +71,7 @@ public struct AgentInferenceRealization:
     ) {
         self.strategy = strategy
         self.adapter = adapter
-        self.modelPolicy = modelPolicy
+        self.modelSelection = modelSelection
         self.instructions = instructions
         self.demonstrations = demonstrations
         self.generation = generation
