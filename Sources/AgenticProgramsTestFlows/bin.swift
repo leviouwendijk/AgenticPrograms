@@ -64,6 +64,19 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runDetermineNextActionProgram()
         },
+        TestFlow(
+            "nested-program-composition",
+            tags: [
+                "agentic-programs",
+                "program",
+                "composition",
+                "registry",
+                "nested",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runNestedProgramComposition()
+        },
     ]
 }
 

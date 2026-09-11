@@ -26,7 +26,8 @@ public protocol AgentProgramToolInvoking: Sendable {
 public protocol AgentProgramInvoking: Sendable {
     func invoke<Program: AgentProgram>(
         _ program: Program.Type,
-        input: Program.Input
+        input: Program.Input,
+        in context: AgentProgramContext
     ) async throws -> Program.Output
 }
 
@@ -98,7 +99,8 @@ public struct AgentProgramContext: Sendable {
 
         return try await programInvoker.invoke(
             program,
-            input: input
+            input: input,
+            in: self
         )
     }
 
