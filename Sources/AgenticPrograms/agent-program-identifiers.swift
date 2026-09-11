@@ -1,10 +1,7 @@
+import Primitives
+
 public struct AgentProgramIdentifier:
-    Sendable,
-    Codable,
-    Hashable,
-    RawRepresentable,
-    ExpressibleByStringLiteral,
-    CustomStringConvertible
+    StringIdentifier
 {
     public let rawValue: String
 
@@ -12,32 +9,11 @@ public struct AgentProgramIdentifier:
         rawValue: String
     ) {
         self.rawValue = rawValue
-    }
-
-    public init(
-        _ rawValue: String
-    ) {
-        self.rawValue = rawValue
-    }
-
-    public init(
-        stringLiteral value: String
-    ) {
-        self.rawValue = value
-    }
-
-    public var description: String {
-        rawValue
     }
 }
 
 public struct AgentProgramRealizationIdentifier:
-    Sendable,
-    Codable,
-    Hashable,
-    RawRepresentable,
-    ExpressibleByStringLiteral,
-    CustomStringConvertible
+    StringIdentifier
 {
     public let rawValue: String
 
@@ -45,21 +21,5 @@ public struct AgentProgramRealizationIdentifier:
         rawValue: String
     ) {
         self.rawValue = rawValue
-    }
-
-    public init(
-        _ rawValue: String
-    ) {
-        self.rawValue = rawValue
-    }
-
-    public init(
-        stringLiteral value: String
-    ) {
-        self.rawValue = value
-    }
-
-    public var description: String {
-        rawValue
     }
 }
