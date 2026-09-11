@@ -77,6 +77,20 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runNestedProgramComposition()
         },
+        TestFlow(
+            "reviewed-action-selection",
+            tags: [
+                "agentic-programs",
+                "program",
+                "inference",
+                "multi-stage",
+                "decision",
+                "assessment",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runReviewedActionSelection()
+        },
     ]
 }
 
