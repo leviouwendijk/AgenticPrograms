@@ -1,5 +1,5 @@
 {
-  "originHash" : "d4660a5a9cf7725a48d0845c6b6c41053ab974b5e70db401f7ba3b42b8b66330",
+  "originHash" : "b18064aca011e66b4f0c572df6649bc8af09202c36b7d3ba75412180f09e8a22",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "223419e0d7a7ad76149655d30c80b1663fcb7ace"
+        "revision" : "a33042479f1968e7a43461d60b98b6e346904866"
       }
     },
     {
@@ -92,12 +92,30 @@
       }
     },
     {
+      "identity" : "schemamacros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/SchemaMacros.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "2441b49a5159c375b094672a0ba0ae338829ec32"
+      }
+    },
+    {
       "identity" : "strings",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/leviouwendijk/Strings",
       "state" : {
         "branch" : "master",
         "revision" : "86a939d7bbb3e25808f88fbcedcee4069a5a5ae1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
       }
     },
     {

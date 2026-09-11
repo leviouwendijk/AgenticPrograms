@@ -51,6 +51,19 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runProgramInferenceBridge()
         },
+        TestFlow(
+            "determine-next-action-program",
+            tags: [
+                "agentic-programs",
+                "program",
+                "inference",
+                "decision",
+                "composition",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runDetermineNextActionProgram()
+        },
     ]
 }
 
