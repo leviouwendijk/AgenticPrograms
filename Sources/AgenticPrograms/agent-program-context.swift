@@ -1,4 +1,5 @@
 import Agentic
+import AgenticInference
 
 public enum AgentProgramContextError:
     Error,
@@ -9,14 +10,6 @@ public enum AgentProgramContextError:
     case toolInvocationUnavailable
     case programInvocationUnavailable
     case artifactStorageUnavailable
-}
-
-public protocol AgentInferenceInvoking: Sendable {
-    func infer<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        at site: AgentInferenceSiteIdentifier,
-        input: Inference.Input
-    ) async throws -> Inference.Output
 }
 
 public protocol AgentProgramToolInvoking: Sendable {
