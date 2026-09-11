@@ -122,13 +122,15 @@ extension AgenticProgramsFlowTesting {
         )
         let programRealization = AgentProgramRealization<BridgeProgram>(
             id: "fixture.bridge_realization",
-            inferences: [
-                AgentInferenceRealizationBinding(
-                    site: "determine",
-                    inference: BridgeInference.definition.identifier,
-                    realization: boundRealization
-                ),
-            ]
+            inferences: try AgentProgramInferenceBindings(
+                [
+                    AgentInferenceRealizationBinding(
+                        site: "determine",
+                        inference: BridgeInference.definition.identifier,
+                        realization: boundRealization
+                    ),
+                ]
+            )
         )
         let inferenceInvoker = AgentProgramInferenceInvoker(
             realization: programRealization,
@@ -201,13 +203,15 @@ extension AgenticProgramsFlowTesting {
         let mismatchedInvoker = AgentProgramInferenceInvoker(
             realization: AgentProgramRealization<BridgeProgram>(
                 id: "fixture.mismatched_binding",
-                inferences: [
-                    AgentInferenceRealizationBinding(
-                        site: "determine",
-                        inference: "fixture.other_inference",
-                        realization: boundRealization
-                    ),
-                ]
+                inferences: try AgentProgramInferenceBindings(
+                    [
+                        AgentInferenceRealizationBinding(
+                            site: "determine",
+                            inference: "fixture.other_inference",
+                            realization: boundRealization
+                        ),
+                    ]
+                )
             ),
             executor: executor
         )

@@ -7,12 +7,21 @@ public struct AgentProgramRealization<Program: AgentProgram>:
     Identifiable
 {
     public var id: AgentProgramRealizationIdentifier
-    public var inferences: [AgentInferenceRealizationBinding]
+    public var inferences: AgentProgramInferenceBindings
     public var metadata: [String: String]
 
     public init(
         id: AgentProgramRealizationIdentifier,
-        inferences: [AgentInferenceRealizationBinding] = [],
+        metadata: [String: String] = [:]
+    ) {
+        self.id = id
+        self.inferences = .empty
+        self.metadata = metadata
+    }
+
+    public init(
+        id: AgentProgramRealizationIdentifier,
+        inferences: AgentProgramInferenceBindings,
         metadata: [String: String] = [:]
     ) {
         self.id = id
@@ -27,9 +36,7 @@ public struct AgentProgramRealization<Program: AgentProgram>:
     public func inference(
         at site: AgentInferenceSiteIdentifier
     ) -> AgentInferenceRealizationBinding? {
-        inferences.first {
-            $0.site == site
-        }
+        inferences[site]
     }
 
     public func realization(

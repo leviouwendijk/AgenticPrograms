@@ -135,18 +135,20 @@ extension AgenticProgramsFlowTesting {
         )
         let realization = AgentProgramRealization<ReviewedActionSelection>(
             id: "fixture.reviewed_action_selection",
-            inferences: [
-                AgentInferenceRealizationBinding(
-                    site: ReviewedActionSelection.selectionSite,
-                    inference: DetermineNextAction.definition.identifier,
-                    realization: selectionRealization
-                ),
-                AgentInferenceRealizationBinding(
-                    site: ReviewedActionSelection.assessmentSite,
-                    inference: AssessCandidateAction.definition.identifier,
-                    realization: assessmentRealization
-                ),
-            ]
+            inferences: try AgentProgramInferenceBindings(
+                [
+                    AgentInferenceRealizationBinding(
+                        site: ReviewedActionSelection.selectionSite,
+                        inference: DetermineNextAction.definition.identifier,
+                        realization: selectionRealization
+                    ),
+                    AgentInferenceRealizationBinding(
+                        site: ReviewedActionSelection.assessmentSite,
+                        inference: AssessCandidateAction.definition.identifier,
+                        realization: assessmentRealization
+                    ),
+                ]
+            )
         )
         let invoker = AgentProgramInferenceInvoker(
             realization: realization,

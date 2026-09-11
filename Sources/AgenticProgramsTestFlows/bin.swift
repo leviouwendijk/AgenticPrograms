@@ -91,6 +91,20 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runReviewedActionSelection()
         },
+        TestFlow(
+            "program-inference-binding-parsing",
+            tags: [
+                "agentic-programs",
+                "program",
+                "inference",
+                "realization",
+                "parsing",
+                "codable",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runProgramInferenceBindingParsing()
+        },
     ]
 }
 
