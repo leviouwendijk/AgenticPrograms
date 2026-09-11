@@ -38,6 +38,19 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runProgramRegistrationComposition()
         },
+        TestFlow(
+            "program-inference-bridge",
+            tags: [
+                "agentic-programs",
+                "inference",
+                "realization",
+                "site",
+                "execution",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runProgramInferenceBridge()
+        },
     ]
 }
 
