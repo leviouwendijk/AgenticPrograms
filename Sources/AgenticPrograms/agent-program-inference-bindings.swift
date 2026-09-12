@@ -50,7 +50,7 @@ public struct AgentProgramInferenceBindings:
     }
 
     private init(
-        parsed storage: [AgentInferenceRealizationBinding]
+        validatedStorage storage: [AgentInferenceRealizationBinding]
     ) {
         self.storage = storage
     }
@@ -58,18 +58,6 @@ public struct AgentProgramInferenceBindings:
     public init(
         _ bindings: [AgentInferenceRealizationBinding]
     ) throws {
-        self = try Self.parse(
-            bindings
-        )
-    }
-
-    public static let empty = Self(
-        parsed: []
-    )
-
-    public static func parse(
-        _ bindings: [AgentInferenceRealizationBinding]
-    ) throws -> Self {
         var seen: Set<AgentInferenceSiteIdentifier> = []
 
         for binding in bindings {
@@ -81,10 +69,13 @@ public struct AgentProgramInferenceBindings:
             }
         }
 
-        return Self(
-            parsed: bindings
-        )
+        self.storage = bindings
     }
+
+    public static let empty = Self(
+        validatedStorage: []
+    )
+
 
     public mutating func set(
         _ binding: AgentInferenceRealizationBinding
@@ -106,7 +97,7 @@ public struct AgentProgramInferenceBindings:
         from decoder: Decoder
     ) throws {
         let container = try decoder.singleValueContainer()
-        self = try Self.parse(
+        try self.init(
             try container.decode(
                 [AgentInferenceRealizationBinding].self
             )
