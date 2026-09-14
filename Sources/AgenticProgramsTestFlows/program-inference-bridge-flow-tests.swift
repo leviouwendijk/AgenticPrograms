@@ -132,6 +132,29 @@ extension AgenticProgramsFlowTesting {
                 ]
             )
         )
+        let resolvedInvocation =
+            try AgentProgramInferenceInvocation<BridgeInference>(
+                BridgeInference.self,
+                at: "determine",
+                in: programRealization
+            )
+
+        try Expect.equal(
+            resolvedInvocation.site,
+            AgentInferenceSiteIdentifier("determine"),
+            "resolved Program inference preserves its semantic site"
+        )
+        try Expect.equal(
+            resolvedInvocation.inference,
+            BridgeInference.definition.identifier,
+            "resolved Program inference preserves its semantic inference identity"
+        )
+        try Expect.equal(
+            resolvedInvocation.realization,
+            boundRealization,
+            "resolved Program inference preserves the exact bound realization"
+        )
+
         let inferenceInvoker = AgentProgramInferenceInvoker(
             realization: programRealization,
             executor: executor

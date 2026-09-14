@@ -1,5 +1,4 @@
 import AgenticInference
-import Foundation
 
 public struct AgentProgramInferenceInvoker<Program: AgentProgram>:
     AgentInferenceInvoking,
@@ -21,46 +20,16 @@ public struct AgentProgramInferenceInvoker<Program: AgentProgram>:
         at site: AgentInferenceSiteIdentifier,
         input: Inference.Input
     ) async throws -> Inference.Output {
-        let inferenceIdentifier = inference.definition.identifier
+        let invocation = try AgentProgramInferenceInvocation<Inference>(
+            inference,
+            at: site,
+            in: realization
+        )
+        let result = try await invocation.execute(
+            input: input,
+            using: executor
+        )
 
-        guard let binding = realization.inference(
-            at: site
-        ) else {
-            throw AgentProgramInferenceInvocationError.bindingUnavailable(
-                site: site,
-                inference: inferenceIdentifier
-            )
-        }
-
-        guard binding.inference == inferenceIdentifier else {
-            throw AgentProgramInferenceInvocationError.inferenceMismatch(
-                site: site,
-                expected: inferenceIdentifier,
-                bound: binding.inference
-            )
-        }
-
-        do {
-            let result = try await executor.execute(
-                inference,
-                input: input,
-                realization: binding.realization
-            )
-
-            return result.output
-        } catch let error as AgentInferenceRecoveryError {
-            throw AgentProgramInferenceFailure(
-                site: site,
-                inference: inferenceIdentifier,
-                recovery: error.record,
-                message: error.message
-            )
-        } catch {
-            throw AgentProgramInferenceFailure(
-                site: site,
-                inference: inferenceIdentifier,
-                message: error.localizedDescription
-            )
-        }
+        return result.output
     }
 }
