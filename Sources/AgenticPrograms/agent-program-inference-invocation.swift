@@ -68,6 +68,12 @@ public struct AgentProgramInferenceInvocation<
             )
         } catch let failure as AgentProgramInferenceFailure {
             throw failure
+        } catch let error as AgentInferenceExecutionFailure {
+            throw AgentProgramInferenceFailure(
+                site: site,
+                inference: inference,
+                execution: error
+            )
         } catch let error as AgentInferenceRecoveryError {
             throw AgentProgramInferenceFailure(
                 site: site,

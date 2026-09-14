@@ -48,6 +48,23 @@ private struct ProgramInferenceFailureFixtureExecutor:
     }
 }
 
+private struct ProgramInferenceCanonicalFailureFixtureExecutor:
+    AgentInferenceExecuting,
+    Sendable
+{
+    let failure: AgentInferenceExecutionFailure
+
+    func execute<Inference: AgentInference>(
+        _ inference: Inference.Type,
+        input: Inference.Input,
+        realization: AgentInferenceRealization
+    ) async throws
+        -> AgentInferenceExecutionResult<Inference.Output>
+    {
+        throw failure
+    }
+}
+
 private struct ProgramInferenceFailureFixtureProgram:
     AgentProgram
 {
@@ -159,6 +176,100 @@ extension AgenticProgramsFlowTesting {
                 .localizedDescription,
             "typed inference failure preserves executor error message"
         )
+        try Expect.equal(
+            observed.execution == nil,
+            true,
+            "arbitrary custom executor errors retain the fallback Program failure representation"
+        )
+
+        let canonicalExecutionFailure = AgentInferenceExecutionFailure(
+            capturing: ProgramInferenceFailureFixtureError.failed,
+            inference: ProgramInferenceFailureFixtureInference
+                .definition
+                .identifier,
+            strategy: .direct,
+            budget: boundRealization.budget,
+            metadata: [
+                "fixture": "canonical_program_failure",
+            ]
+        )
+        let canonicalContext = AgentProgramContext(
+            inference: AgentProgramInferenceInvoker(
+                realization: realization,
+                executor: ProgramInferenceCanonicalFailureFixtureExecutor(
+                    failure: canonicalExecutionFailure
+                )
+            )
+        )
+        var canonicalProgramFailure: AgentProgramInferenceFailure?
+
+        do {
+            _ = try await ProgramInferenceFailureFixtureProgram()
+                .run(
+                    "canonical",
+                    in: canonicalContext
+                )
+        } catch let failure as AgentProgramInferenceFailure {
+            canonicalProgramFailure = failure
+        }
+
+        let canonicalObserved = try Expect.notNil(
+            canonicalProgramFailure,
+            "canonical inference execution failure reaches Program semantics"
+        )
+        let retainedExecution = try Expect.notNil(
+            canonicalObserved.execution,
+            "Program inference failure retains the exact lower-level execution failure"
+        )
+
+        try Expect.equal(
+            retainedExecution.record,
+            canonicalExecutionFailure.record,
+            "Program inference failure preserves the complete canonical execution record"
+        )
+        try Expect.equal(
+            canonicalObserved.recovery,
+            canonicalExecutionFailure.recovery,
+            "Program recovery projection comes from the canonical execution failure"
+        )
+        try Expect.equal(
+            canonicalObserved.message,
+            canonicalExecutionFailure.failure.message,
+            "Program message projection comes from the canonical execution failure"
+        )
+        try Expect.equal(
+            retainedExecution.record.failure,
+            canonicalExecutionFailure.record.failure,
+            "durable lower-level execution failure evidence is not reconstructed"
+        )
+        try Expect.equal(
+            retainedExecution.record.metadata["fixture"],
+            "canonical_program_failure",
+            "Program failure retains canonical execution metadata"
+        )
+
+        let canonicalHandled: String = try await canonicalContext.infer(
+            ProgramInferenceFailureFixtureInference.self,
+            at: ProgramInferenceFailureFixtureProgram.site,
+            input: .init(
+                value: "canonical-handler"
+            )
+        ) { failure -> String in
+            guard
+                failure.execution?.record ==
+                    canonicalExecutionFailure.record
+            else {
+                throw failure
+            }
+
+            return "canonical"
+        }
+
+        try Expect.equal(
+            canonicalHandled,
+            "canonical",
+            "authored Program failure handlers can inspect exact lower-level inference execution evidence"
+        )
 
         let manual: String = try await context.infer(
             ProgramInferenceFailureFixtureInference.self,
@@ -258,6 +369,14 @@ extension AgenticProgramsFlowTesting {
             .field(
                 "inference",
                 observed.inference.rawValue
+            ),
+            .field(
+                "canonical_execution_failure",
+                String(canonicalObserved.execution != nil)
+            ),
+            .field(
+                "canonical_handler",
+                canonicalHandled
             ),
         ]
     }
