@@ -3,14 +3,11 @@ import AgenticRecovery
 import Foundation
 
 public struct AgentProgramToolFailure:
-    Error,
-    Sendable,
+    AgentProgramFailure,
     LocalizedError
 {
-    public enum Handling<Output: Sendable>: Sendable {
-        case recover(Output)
-        case propagate
-    }
+    public typealias Handling<Output: Sendable> =
+        AgentProgramFailureDisposition<Output>
 
     public let tool: AgentToolIdentifier
     public let result: AgentToolResult
@@ -24,22 +21,6 @@ public struct AgentProgramToolFailure:
         self.tool = tool
         self.result = result
         self.recovery = recovery
-    }
-
-    public var state: Recovery.State? {
-        recovery?.state
-    }
-
-    public var effect: Recovery.EffectState? {
-        state?.effect
-    }
-
-    public var retry: Recovery.RetrySafety? {
-        state?.retry
-    }
-
-    public var outcome: Recovery.Outcome? {
-        recovery?.outcome
     }
 
     public var errorDescription: String? {

@@ -119,6 +119,20 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
             try await AgenticProgramsFlowTesting
                 .runProgramToolFailureHandling()
         },
+        TestFlow(
+            "program-inference-failure-handling",
+            tags: [
+                "agentic-programs",
+                "program",
+                "inference",
+                "failure",
+                "recovery",
+                "handling",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runProgramInferenceFailureHandling()
+        },
     ]
 }
 

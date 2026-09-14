@@ -1,4 +1,5 @@
 import AgenticInference
+import Foundation
 
 public struct AgentProgramInferenceInvoker<Program: AgentProgram>:
     AgentInferenceInvoking,
@@ -39,12 +40,27 @@ public struct AgentProgramInferenceInvoker<Program: AgentProgram>:
             )
         }
 
-        let result = try await executor.execute(
-            inference,
-            input: input,
-            realization: binding.realization
-        )
+        do {
+            let result = try await executor.execute(
+                inference,
+                input: input,
+                realization: binding.realization
+            )
 
-        return result.output
+            return result.output
+        } catch let error as AgentInferenceRecoveryError {
+            throw AgentProgramInferenceFailure(
+                site: site,
+                inference: inferenceIdentifier,
+                recovery: error.record,
+                message: error.message
+            )
+        } catch {
+            throw AgentProgramInferenceFailure(
+                site: site,
+                inference: inferenceIdentifier,
+                message: error.localizedDescription
+            )
+        }
     }
 }

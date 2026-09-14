@@ -69,6 +69,56 @@ public struct AgentProgramContext: Sendable {
         )
     }
 
+    public func infer<Inference: AgentInference>(
+        _ inference: Inference.Type,
+        at site: AgentInferenceSiteIdentifier,
+        input: Inference.Input,
+        handling: AgentProgramFailureHandler<
+            AgentProgramInferenceFailure,
+            Inference.Output
+        >
+    ) async throws -> Inference.Output {
+        do {
+            return try await infer(
+                inference,
+                at: site,
+                input: input
+            )
+        } catch let failure as AgentProgramInferenceFailure {
+            return try await handling(
+                failure
+            )
+        }
+    }
+
+    public func infer<Inference: AgentInference>(
+        _ inference: Inference.Type,
+        at site: AgentInferenceSiteIdentifier,
+        input: Inference.Input,
+        handling: AgentProgramFailureDispositionHandler<
+            AgentProgramInferenceFailure,
+            Inference.Output
+        >
+    ) async throws -> Inference.Output {
+        do {
+            return try await infer(
+                inference,
+                at: site,
+                input: input
+            )
+        } catch let failure as AgentProgramInferenceFailure {
+            switch try await handling(
+                failure
+            ) {
+            case .recover(let output):
+                return output
+
+            case .propagate:
+                throw failure
+            }
+        }
+    }
+
     public func invoke<Input, Output>(
         _ identifier: AgentToolIdentifier,
         input: Input,
@@ -93,9 +143,10 @@ public struct AgentProgramContext: Sendable {
         _ identifier: AgentToolIdentifier,
         input: Input,
         as output: Output.Type,
-        handling: @Sendable (
-            AgentProgramToolFailure
-        ) async throws -> Output
+        handling: AgentProgramFailureHandler<
+            AgentProgramToolFailure,
+            Output
+        >
     ) async throws -> Output
     where
         Input: Encodable & Sendable,
@@ -116,9 +167,10 @@ public struct AgentProgramContext: Sendable {
         _ identifier: AgentToolIdentifier,
         input: Input,
         as output: Output.Type,
-        handling: @Sendable (
-            AgentProgramToolFailure
-        ) async throws -> AgentProgramToolFailure.Handling<Output>
+        handling: AgentProgramFailureDispositionHandler<
+            AgentProgramToolFailure,
+            Output
+        >
     ) async throws -> Output
     where
         Input: Encodable & Sendable,
