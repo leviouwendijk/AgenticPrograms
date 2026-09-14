@@ -13,13 +13,16 @@ public struct AgentProgramToolFailure:
     }
 
     public let tool: AgentToolIdentifier
+    public let result: AgentToolResult
     public let recovery: Recovery.Record?
 
     public init(
         tool: AgentToolIdentifier,
+        result: AgentToolResult,
         recovery: Recovery.Record? = nil
     ) {
         self.tool = tool
+        self.result = result
         self.recovery = recovery
     }
 

@@ -30,10 +30,17 @@ extension AgenticProgramsFlowTesting {
     {
         let identifier: AgentToolIdentifier =
             "fixture.program_tool_failure"
+        let result = AgentToolResult(
+            toolCallID: "fixture-program-tool-failure-call",
+            name: identifier.rawValue,
+            output: .null,
+            isError: true
+        )
         let context = AgentProgramContext(
             tools: ProgramToolFailureFixtureInvoker(
                 failure: AgentProgramToolFailure(
-                    tool: identifier
+                    tool: identifier,
+                    result: result
                 )
             )
         )
@@ -43,7 +50,12 @@ extension AgenticProgramsFlowTesting {
             input: "input",
             as: String.self
         ) { failure in
-            guard failure.tool == identifier else {
+            guard
+                failure.tool == identifier,
+                failure.result.toolCallID == result.toolCallID,
+                failure.result.name == result.name,
+                failure.result.isError
+            else {
                 throw failure
             }
 
@@ -55,7 +67,12 @@ extension AgenticProgramsFlowTesting {
             input: "input",
             as: String.self
         ) { failure in
-            guard failure.tool == identifier else {
+            guard
+                failure.tool == identifier,
+                failure.result.toolCallID == result.toolCallID,
+                failure.result.name == result.name,
+                failure.result.isError
+            else {
                 return .propagate
             }
 
@@ -73,7 +90,11 @@ extension AgenticProgramsFlowTesting {
                 .propagate
             }
         } catch let failure as AgentProgramToolFailure {
-            propagated = failure.tool == identifier
+            propagated =
+                failure.tool == identifier
+                && failure.result.toolCallID == result.toolCallID
+                && failure.result.name == result.name
+                && failure.result.isError
         }
 
         try Expect.equal(
@@ -96,6 +117,7 @@ extension AgenticProgramsFlowTesting {
             .field("manual", manual),
             .field("disposition", disposition),
             .field("propagated", String(propagated)),
+            .field("failed_result", result.name ?? "<none>"),
         ]
     }
 }
