@@ -89,6 +89,58 @@ public struct AgentProgramContext: Sendable {
         )
     }
 
+    public func invoke<Input, Output>(
+        _ identifier: AgentToolIdentifier,
+        input: Input,
+        as output: Output.Type,
+        handling: @Sendable (
+            AgentProgramToolFailure
+        ) async throws -> Output
+    ) async throws -> Output
+    where
+        Input: Encodable & Sendable,
+        Output: Decodable & Sendable
+    {
+        do {
+            return try await invoke(
+                identifier,
+                input: input,
+                as: output
+            )
+        } catch let failure as AgentProgramToolFailure {
+            return try await handling(failure)
+        }
+    }
+
+    public func invoke<Input, Output>(
+        _ identifier: AgentToolIdentifier,
+        input: Input,
+        as output: Output.Type,
+        handling: @Sendable (
+            AgentProgramToolFailure
+        ) async throws -> AgentProgramToolFailure.Handling<Output>
+    ) async throws -> Output
+    where
+        Input: Encodable & Sendable,
+        Output: Decodable & Sendable
+    {
+        do {
+            return try await invoke(
+                identifier,
+                input: input,
+                as: output
+            )
+        } catch let failure as AgentProgramToolFailure {
+            switch try await handling(failure) {
+            case .recover(let output):
+                return output
+
+            case .propagate:
+                throw failure
+            }
+        }
+    }
+
     public func run<Program: AgentProgram>(
         _ program: Program.Type,
         input: Program.Input

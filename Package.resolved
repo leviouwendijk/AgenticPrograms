@@ -1,5 +1,5 @@
 {
-  "originHash" : "b18064aca011e66b4f0c572df6649bc8af09202c36b7d3ba75412180f09e8a22",
+  "originHash" : "b7758c1fa7fc26d04331f39d21ca7f6af793a707d0e464083654829115282bff",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,16 @@
       "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "397f884a79b519c6766dc2461a754392986ea2df"
+        "revision" : "f9766179827cdd0fcc43f8ee2ff0ff4f785e3460"
+      }
+    },
+    {
+      "identity" : "agenticrecovery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticRecovery.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "c4893afa6feffba5a8607b23f266fc022df7a2a4"
       }
     },
     {
@@ -65,12 +74,30 @@
       }
     },
     {
+      "identity" : "errors",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Errors.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "72d3aaf1203e3443df34ac4bef61683d5285eb25"
+      }
+    },
+    {
       "identity" : "guidelines",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/leviouwendijk/Guidelines.git",
       "state" : {
         "branch" : "master",
         "revision" : "0a5bd3f30af7eaeb79c0ac37007f10322920f95a"
+      }
+    },
+    {
+      "identity" : "macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Macros.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "44885d7ebddc4e9ced6f7cba0deac0ca98da20f1"
       }
     },
     {
@@ -89,15 +116,6 @@
       "state" : {
         "branch" : "master",
         "revision" : "703253bef3f4ae18e03bb35e68ac6db0d1bc584d"
-      }
-    },
-    {
-      "identity" : "schemamacros",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/SchemaMacros.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "2441b49a5159c375b094672a0ba0ae338829ec32"
       }
     },
     {
