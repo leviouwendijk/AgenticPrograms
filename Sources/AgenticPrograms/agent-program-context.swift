@@ -9,6 +9,7 @@ public enum AgentProgramContextError:
     case inferenceUnavailable
     case toolInvocationUnavailable
     case programInvocationUnavailable
+    case userInputUnavailable
     case artifactStorageUnavailable
 }
 
@@ -35,6 +36,7 @@ public struct AgentProgramContext: Sendable {
     private let inferenceInvoker: (any AgentInferenceInvoking)?
     private let toolInvoker: (any AgentProgramToolInvoking)?
     private let programInvoker: (any AgentProgramInvoking)?
+    private let userInputInvoker: (any AgentProgramUserInputInvoking)?
     private let artifactStore: (any AgentArtifactStore)?
 
     public let metadata: [String: String]
@@ -43,12 +45,14 @@ public struct AgentProgramContext: Sendable {
         inference: (any AgentInferenceInvoking)? = nil,
         tools: (any AgentProgramToolInvoking)? = nil,
         programs: (any AgentProgramInvoking)? = nil,
+        userInput: (any AgentProgramUserInputInvoking)? = nil,
         artifacts: (any AgentArtifactStore)? = nil,
         metadata: [String: String] = [:]
     ) {
         self.inferenceInvoker = inference
         self.toolInvoker = tools
         self.programInvoker = programs
+        self.userInputInvoker = userInput
         self.artifactStore = artifacts
         self.metadata = metadata
     }
@@ -191,6 +195,18 @@ public struct AgentProgramContext: Sendable {
                 throw failure
             }
         }
+    }
+
+    public func ask(
+        _ request: UserInputRequest
+    ) async throws -> UserInputResponse {
+        guard let userInputInvoker else {
+            throw AgentProgramContextError.userInputUnavailable
+        }
+
+        return try await userInputInvoker.ask(
+            request
+        )
     }
 
     public func run<Program: AgentProgram>(

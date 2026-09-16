@@ -106,6 +106,19 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 .runProgramInferenceBindingParsing()
         },
         TestFlow(
+            "program-user-input-context",
+            tags: [
+                "agentic-programs",
+                "program",
+                "user-input",
+                "interaction",
+                "context",
+            ]
+        ) {
+            try await AgenticProgramsFlowTesting
+                .runProgramUserInputContext()
+        },
+        TestFlow(
             "program-tool-failure-handling",
             tags: [
                 "agentic-programs",
