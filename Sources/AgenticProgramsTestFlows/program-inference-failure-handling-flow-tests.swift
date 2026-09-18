@@ -44,10 +44,6 @@ private struct InferenceFailureFixture {
     }
 }
 
-extension InferenceFailureFixture:
-    ExecutableProgram
-{}
-
 @InferenceRealization
 private struct FailureRealization {
     typealias InferenceType =

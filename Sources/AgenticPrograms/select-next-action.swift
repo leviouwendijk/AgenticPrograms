@@ -22,12 +22,12 @@ public struct SelectNextAction {
     public typealias Input = DetermineNextAction.Input
     public typealias Output = DetermineNextAction.Candidate
 
-    public static let purpose =
-        "Select and resolve the next action from an explicit candidate set using DetermineNextAction."
+    public static let purpose = """
+    Select and resolve the next action from an explicit candidate set using DetermineNextAction.
+    """
 
     @InferenceSite
-    public static var selection:
-        Site<DetermineNextAction>
+    public static var selection: Site<DetermineNextAction>
 
     public init() {}
 
@@ -54,6 +54,3 @@ public struct SelectNextAction {
     }
 }
 
-extension SelectNextAction:
-    ExecutableProgram
-{}

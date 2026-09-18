@@ -102,7 +102,3 @@ public struct ReviewedActionSelection {
         )
     }
 }
-
-extension ReviewedActionSelection:
-    ExecutableProgram
-{}

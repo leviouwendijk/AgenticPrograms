@@ -36,6 +36,13 @@ private struct BindingParsingFixture {
     @InferenceSite
     static var second:
         Site<SecondBindingInference>
+
+    func run(
+        _ input: Input,
+        in _: ProgramContext
+    ) async throws -> Output {
+        input
+    }
 }
 
 @InferenceRealization

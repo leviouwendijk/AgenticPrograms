@@ -222,10 +222,6 @@ private struct Echo {
     }
 }
 
-extension Echo:
-    ExecutableProgram
-{}
-
 @Program
 private struct Uppercase {
     typealias Input = EchoInput
@@ -243,10 +239,6 @@ private struct Uppercase {
         )
     }
 }
-
-extension Uppercase:
-    ExecutableProgram
-{}
 
 private struct FixtureProgramSet: ProgramSet {
     func register(

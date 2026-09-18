@@ -38,10 +38,6 @@ private struct NestedChild {
     }
 }
 
-extension NestedChild:
-    ExecutableProgram
-{}
-
 @Program
 private struct NestedParent {
     typealias Input = NestedProgramInput
@@ -65,10 +61,6 @@ private struct NestedParent {
         )
     }
 }
-
-extension NestedParent:
-    ExecutableProgram
-{}
 
 extension ProgramsFlowTesting {
     static func runNestedProgramComposition()

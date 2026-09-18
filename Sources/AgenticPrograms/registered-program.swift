@@ -15,7 +15,7 @@ public struct RegisteredProgram: Sendable {
             ProgramContext
         ) async throws -> JSONValue
 
-    public init<ProgramType: ExecutableProgram>(
+    public init<ProgramType: Program>(
         _ program: ProgramType
     ) {
         self.definition = ProgramType.definition

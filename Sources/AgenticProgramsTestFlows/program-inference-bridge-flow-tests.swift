@@ -44,10 +44,6 @@ private struct Bridge {
     }
 }
 
-extension Bridge:
-    ExecutableProgram
-{}
-
 @Program
 private struct OtherBridge {
     typealias Input = String
@@ -59,6 +55,13 @@ private struct OtherBridge {
     @InferenceSite
     static var determine:
         Site<BridgeInference>
+
+    func run(
+        _ input: Input,
+        in _: ProgramContext
+    ) async throws -> Output {
+        input
+    }
 }
 
 @InferenceRealization

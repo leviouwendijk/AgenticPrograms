@@ -38,7 +38,7 @@ public struct ProgramRegistry: Sendable {
     }
 
     public mutating func register<
-        ProgramType: ExecutableProgram
+        ProgramType: Program
     >(
         _ program: ProgramType
     ) throws {
@@ -125,7 +125,7 @@ public struct ProgramRegistry: Sendable {
     }
 
     public func run<
-        ProgramType: ExecutableProgram
+        ProgramType: Program
     >(
         _ program: ProgramType.Type,
         input: ProgramType.Input,
