@@ -49,16 +49,23 @@ extension Standard.Programs {
             }
         }
 
-        public static let purpose =
-            "Select an action, assess the selected candidate, and return it only when the assessment accepts it."
+        public static let purpose = """
+        Select an action, assess the selected candidate, and return it only when the assessment accepts it.
+        """
 
         @InferenceSite
-        public static var selection:
-            Site<Standard.Inferences.DetermineNextAction>
+        public static var selection: Site<
+            Standard
+            .Inferences
+            .DetermineNextAction
+        >
 
         @InferenceSite
-        public static var assessment:
-            Site<Standard.Inferences.AssessCandidateAction>
+        public static var assessment: Site<
+            Standard
+            .Inferences
+            .AssessCandidateAction
+        >
 
         public init() {}
 

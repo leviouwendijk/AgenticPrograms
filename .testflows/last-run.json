@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-09-08T22:23:56Z",
-  "passed" : 2,
+  "generated_at" : "2026-09-18T22:17:04Z",
+  "passed" : 10,
   "results" : [
     {
       "display_name" : "program-registry",
-      "duration_seconds" : 0.001212000846862793,
+      "duration_seconds" : 0.0016930103302001953,
       "name" : "program-registry",
       "status" : "passed",
       "tags" : [
@@ -20,7 +20,7 @@
     },
     {
       "display_name" : "program-registration-composition",
-      "duration_seconds" : 0.00027501583099365234,
+      "duration_seconds" : 0.0003000497817993164,
       "name" : "program-registration-composition",
       "status" : "passed",
       "tags" : [
@@ -30,9 +30,117 @@
         "registration",
         "set"
       ]
+    },
+    {
+      "display_name" : "program-inference-bridge",
+      "duration_seconds" : 0.0006749629974365234,
+      "name" : "program-inference-bridge",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "execution",
+        "inference",
+        "realization",
+        "site"
+      ]
+    },
+    {
+      "display_name" : "select-next-action",
+      "duration_seconds" : 0.0007290840148925781,
+      "name" : "select-next-action",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "composition",
+        "decision",
+        "inference",
+        "program"
+      ]
+    },
+    {
+      "display_name" : "nested-program-composition",
+      "duration_seconds" : 0.0002690553665161133,
+      "name" : "nested-program-composition",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "composition",
+        "nested",
+        "program",
+        "registry"
+      ]
+    },
+    {
+      "display_name" : "reviewed-action-selection",
+      "duration_seconds" : 0.00026595592498779297,
+      "name" : "reviewed-action-selection",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "assessment",
+        "decision",
+        "inference",
+        "multi-stage",
+        "program"
+      ]
+    },
+    {
+      "display_name" : "program-realization-parsing",
+      "duration_seconds" : 0.0012249946594238281,
+      "name" : "program-realization-parsing",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "codable",
+        "inference",
+        "parsing",
+        "program",
+        "realization"
+      ]
+    },
+    {
+      "display_name" : "program-user-input-context",
+      "duration_seconds" : 0.00037097930908203125,
+      "name" : "program-user-input-context",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "context",
+        "interaction",
+        "program",
+        "user-input"
+      ]
+    },
+    {
+      "display_name" : "program-tool-failure-handling",
+      "duration_seconds" : 8.189678192138672e-05,
+      "name" : "program-tool-failure-handling",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "failure",
+        "handling",
+        "program",
+        "recovery",
+        "tool"
+      ]
+    },
+    {
+      "display_name" : "program-inference-failure-handling",
+      "duration_seconds" : 0.0005019903182983398,
+      "name" : "program-inference-failure-handling",
+      "status" : "passed",
+      "tags" : [
+        "agentic-programs",
+        "failure",
+        "handling",
+        "inference",
+        "program",
+        "recovery"
+      ]
     }
   ],
   "skipped" : 0,
   "title" : "AgenticPrograms flow tests",
-  "total" : 2
+  "total" : 10
 }

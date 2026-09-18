@@ -37,14 +37,14 @@ public struct ProgramInferenceInvoker<
                 )
         }
 
-        let ownedSite = InferenceSite<
+        let ownedsite = InferenceSite<
             ProgramType,
             InferenceType
         >(
             identifier: site.identifier
         )
         let invocation = try ProgramInferenceInvocation(
-            ownedSite,
+            ownedsite,
             in: realization
         )
         let result = try await invocation.execute(
