@@ -1,8 +1,9 @@
 import Agentic
 import AgenticPrograms
+import Primitives
 import TestFlows
 
-extension AgenticProgramsFlowTesting {
+extension ProgramsFlowTesting {
     static func runProgramRegistry()
         async throws
         -> [TestFlowDiagnostic]
@@ -16,7 +17,7 @@ extension AgenticProgramsFlowTesting {
         )
 
         try registry.register(
-            EchoProgram()
+            Echo()
         )
 
         try Expect.equal(
@@ -25,13 +26,13 @@ extension AgenticProgramsFlowTesting {
             "program registry contains registered program"
         )
         try Expect.equal(
-            registry.descriptors.map(\.identifier),
-            [EchoProgram.descriptor.identifier],
-            "program registry projects registered descriptors"
+            registry.definitions.map(\.identifier),
+            [Echo.definition.identifier],
+            "program registry projects canonical Program definitions"
         )
 
         let typedOutput = try await registry.run(
-            EchoProgram.self,
+            Echo.self,
             input: .init(
                 value: "typed"
             ),
@@ -47,19 +48,18 @@ extension AgenticProgramsFlowTesting {
         )
 
         let registered = try registry.requireProgram(
-            identifiedBy: EchoProgram.descriptor.identifier
+            identifiedBy: Echo.definition.identifier
         )
         let erasedOutput = try await registered.run(
-            input: try JSONToolBridge.encode(
+            input: try JSONValueCodec.encodeValue(
                 EchoInput(
                     value: "erased"
                 )
             ),
             in: .init()
         )
-        let decodedOutput = try JSONToolBridge.decode(
-            EchoOutput.self,
-            from: erasedOutput
+        let decodedOutput = try erasedOutput.as(
+            EchoOutput.self
         )
 
         try Expect.equal(
@@ -74,7 +74,7 @@ extension AgenticProgramsFlowTesting {
 
         do {
             try registry.register(
-                EchoProgram()
+                Echo()
             )
         } catch ProgramRegistryError.duplicateProgram(let identifier) {
             duplicateIdentifier = identifier
@@ -82,7 +82,7 @@ extension AgenticProgramsFlowTesting {
 
         try Expect.equal(
             duplicateIdentifier,
-            EchoProgram.descriptor.identifier.rawValue,
+            Echo.definition.identifier.rawValue,
             "program registry rejects duplicate identifiers"
         )
 
@@ -90,7 +90,9 @@ extension AgenticProgramsFlowTesting {
 
         do {
             _ = try registry.requireProgram(
-                identifiedBy: "fixture.unknown"
+                identifiedBy: .init(
+                    rawValue: "fixture.unknown"
+                )
             )
         } catch ProgramRegistryError.unknownProgram(let identifier) {
             unknownIdentifier = identifier
@@ -137,23 +139,23 @@ extension AgenticProgramsFlowTesting {
             "program set and provider compose into one registry"
         )
         try Expect.equal(
-            registry.descriptors.map(\.identifier),
+            registry.definitions.map(\.identifier),
             [
-                EchoProgram.descriptor.identifier,
-                UppercaseProgram.descriptor.identifier,
+                Echo.definition.identifier,
+                Uppercase.definition.identifier,
             ],
-            "program descriptors are projected in stable title order"
+            "program definitions are projected in stable semantic order"
         )
 
         let echo = try await registry.run(
-            EchoProgram.self,
+            Echo.self,
             input: .init(
                 value: "set"
             ),
             in: .init()
         )
         let uppercase = try await registry.run(
-            UppercaseProgram.self,
+            Uppercase.self,
             input: .init(
                 value: "provider"
             ),
@@ -178,7 +180,7 @@ extension AgenticProgramsFlowTesting {
             ),
             .field(
                 "programs",
-                registry.descriptors
+                registry.definitions
                     .map(\.identifier.rawValue)
                     .joined(separator: ",")
             ),
@@ -202,19 +204,17 @@ private struct EchoOutput:
     let value: String
 }
 
-private struct EchoProgram: AgentProgram {
+@Program
+private struct Echo {
     typealias Input = EchoInput
     typealias Output = EchoOutput
 
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.echo",
-        title: "Echo",
-        summary: "Echo fixture program."
-    )
+    static let purpose =
+        "Echo fixture program."
 
     func run(
         _ input: EchoInput,
-        in _: AgentProgramContext
+        in _: ProgramContext
     ) async throws -> EchoOutput {
         .init(
             value: "echo:\(input.value)"
@@ -222,19 +222,21 @@ private struct EchoProgram: AgentProgram {
     }
 }
 
-private struct UppercaseProgram: AgentProgram {
+extension Echo:
+    ExecutableProgram
+{}
+
+@Program
+private struct Uppercase {
     typealias Input = EchoInput
     typealias Output = EchoOutput
 
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.uppercase",
-        title: "Uppercase",
-        summary: "Uppercase fixture program."
-    )
+    static let purpose =
+        "Uppercase fixture program."
 
     func run(
         _ input: EchoInput,
-        in _: AgentProgramContext
+        in _: ProgramContext
     ) async throws -> EchoOutput {
         .init(
             value: input.value.uppercased()
@@ -242,22 +244,26 @@ private struct UppercaseProgram: AgentProgram {
     }
 }
 
-private struct FixtureProgramSet: AgentProgramSet {
+extension Uppercase:
+    ExecutableProgram
+{}
+
+private struct FixtureProgramSet: ProgramSet {
     func register(
         into registry: inout ProgramRegistry
     ) throws {
         try registry.register(
-            EchoProgram()
+            Echo()
         )
     }
 }
 
-private struct FixtureProgramProvider: AgentProgramProvider {
+private struct FixtureProgramProvider: ProgramProvider {
     func registerPrograms(
         into registry: inout ProgramRegistry
     ) throws {
         try registry.register(
-            UppercaseProgram()
+            Uppercase()
         )
     }
 }

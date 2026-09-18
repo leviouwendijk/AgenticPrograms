@@ -1,13 +1,14 @@
+import Agentic
 import AgenticInference
 import AgenticRecovery
 import Foundation
 
-public struct AgentProgramInferenceFailure:
-    AgentProgramFailure,
+public struct ProgramInferenceFailure:
+    ProgramFailure,
     LocalizedError
 {
     private enum Evidence: Sendable {
-        case execution(AgentInferenceExecutionFailure)
+        case execution(InferenceExecutionFailure)
         case fallback(
             recovery: Recovery.Record?,
             message: String
@@ -15,16 +16,16 @@ public struct AgentProgramInferenceFailure:
     }
 
     public typealias Handling<Output: Sendable> =
-        AgentProgramFailureDisposition<Output>
+        ProgramFailureDisposition<Output>
 
-    public let site: AgentInferenceSiteIdentifier
-    public let inference: AgentInferenceIdentifier
+    public let site: InferenceSiteIdentifier
+    public let inference: InferenceIdentifier
     private let evidence: Evidence
 
     public init(
-        site: AgentInferenceSiteIdentifier,
-        inference: AgentInferenceIdentifier,
-        execution: AgentInferenceExecutionFailure
+        site: InferenceSiteIdentifier,
+        inference: InferenceIdentifier,
+        execution: InferenceExecutionFailure
     ) {
         self.site = site
         self.inference = inference
@@ -32,8 +33,8 @@ public struct AgentProgramInferenceFailure:
     }
 
     public init(
-        site: AgentInferenceSiteIdentifier,
-        inference: AgentInferenceIdentifier,
+        site: InferenceSiteIdentifier,
+        inference: InferenceIdentifier,
         recovery: Recovery.Record? = nil,
         message: String
     ) {
@@ -45,7 +46,7 @@ public struct AgentProgramInferenceFailure:
         )
     }
 
-    public var execution: AgentInferenceExecutionFailure? {
+    public var execution: InferenceExecutionFailure? {
         switch evidence {
         case .execution(let execution):
             return execution

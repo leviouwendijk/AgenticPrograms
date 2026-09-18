@@ -1,13 +1,13 @@
 import AgenticRecovery
 
-public protocol AgentProgramFailure:
+public protocol ProgramFailure:
     Error,
     Sendable
 {
     var recovery: Recovery.Record? { get }
 }
 
-public extension AgentProgramFailure {
+public extension ProgramFailure {
     var state: Recovery.State? {
         recovery?.state
     }
@@ -25,20 +25,20 @@ public extension AgentProgramFailure {
     }
 }
 
-public enum AgentProgramFailureDisposition<
+public enum ProgramFailureDisposition<
     Output: Sendable
 >: Sendable {
     case recover(Output)
     case propagate
 }
 
-public typealias AgentProgramFailureHandler<
-    Failure: AgentProgramFailure,
+public typealias ProgramFailureHandler<
+    Failure: ProgramFailure,
     Output
 > = @Sendable (Failure) async throws -> Output
 
-public typealias AgentProgramFailureDispositionHandler<
-    Failure: AgentProgramFailure,
+public typealias ProgramFailureDispositionHandler<
+    Failure: ProgramFailure,
     Output: Sendable
 > = @Sendable (Failure) async throws
-    -> AgentProgramFailureDisposition<Output>
+    -> ProgramFailureDisposition<Output>

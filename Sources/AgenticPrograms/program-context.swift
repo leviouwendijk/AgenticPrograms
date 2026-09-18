@@ -1,7 +1,7 @@
 import Agentic
 import AgenticInference
 
-public enum AgentProgramContextError:
+public enum ProgramContextError:
     Error,
     Sendable,
     Equatable
@@ -13,9 +13,9 @@ public enum AgentProgramContextError:
     case artifactStorageUnavailable
 }
 
-public protocol AgentProgramToolInvoking: Sendable {
+public protocol ProgramToolInvoking: Sendable {
     func invoke<Input, Output>(
-        _ identifier: AgentToolIdentifier,
+        _ identifier: ToolIdentifier,
         input: Input,
         as output: Output.Type
     ) async throws -> Output
@@ -24,28 +24,28 @@ public protocol AgentProgramToolInvoking: Sendable {
         Output: Decodable & Sendable
 }
 
-public protocol AgentProgramInvoking: Sendable {
-    func invoke<Program: AgentProgram>(
-        _ program: Program.Type,
-        input: Program.Input,
-        in context: AgentProgramContext
-    ) async throws -> Program.Output
+public protocol ProgramInvoking: Sendable {
+    func invoke<ProgramType: ExecutableProgram>(
+        _ program: ProgramType.Type,
+        input: ProgramType.Input,
+        in context: ProgramContext
+    ) async throws -> ProgramType.Output
 }
 
-public struct AgentProgramContext: Sendable {
-    private let inferenceInvoker: (any AgentInferenceInvoking)?
-    private let toolInvoker: (any AgentProgramToolInvoking)?
-    private let programInvoker: (any AgentProgramInvoking)?
-    private let userInputInvoker: (any AgentProgramUserInputInvoking)?
+public struct ProgramContext: Sendable {
+    private let inferenceInvoker: (any InferenceInvoking)?
+    private let toolInvoker: (any ProgramToolInvoking)?
+    private let programInvoker: (any ProgramInvoking)?
+    private let userInputInvoker: (any ProgramUserInputInvoking)?
     private let artifactStore: (any AgentArtifactStore)?
 
     public let metadata: [String: String]
 
     public init(
-        inference: (any AgentInferenceInvoking)? = nil,
-        tools: (any AgentProgramToolInvoking)? = nil,
-        programs: (any AgentProgramInvoking)? = nil,
-        userInput: (any AgentProgramUserInputInvoking)? = nil,
+        inference: (any InferenceInvoking)? = nil,
+        tools: (any ProgramToolInvoking)? = nil,
+        programs: (any ProgramInvoking)? = nil,
+        userInput: (any ProgramUserInputInvoking)? = nil,
         artifacts: (any AgentArtifactStore)? = nil,
         metadata: [String: String] = [:]
     ) {
@@ -57,60 +57,72 @@ public struct AgentProgramContext: Sendable {
         self.metadata = metadata
     }
 
-    public func infer<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        at site: AgentInferenceSiteIdentifier,
-        input: Inference.Input
-    ) async throws -> Inference.Output {
+    public func infer<
+        ProgramType: Program,
+        InferenceType: Inference
+    >(
+        _ site: InferenceSite<
+            ProgramType,
+            InferenceType
+        >,
+        input: InferenceType.Input
+    ) async throws -> InferenceType.Output {
         guard let inferenceInvoker else {
-            throw AgentProgramContextError.inferenceUnavailable
+            throw ProgramContextError.inferenceUnavailable
         }
 
         return try await inferenceInvoker.infer(
-            inference,
-            at: site,
+            site,
             input: input
         )
     }
 
-    public func infer<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        at site: AgentInferenceSiteIdentifier,
-        input: Inference.Input,
-        handling: AgentProgramFailureHandler<
-            AgentProgramInferenceFailure,
-            Inference.Output
+    public func infer<
+        ProgramType: Program,
+        InferenceType: Inference
+    >(
+        _ site: InferenceSite<
+            ProgramType,
+            InferenceType
+        >,
+        input: InferenceType.Input,
+        handling: ProgramFailureHandler<
+            ProgramInferenceFailure,
+            InferenceType.Output
         >
-    ) async throws -> Inference.Output {
+    ) async throws -> InferenceType.Output {
         do {
             return try await infer(
-                inference,
-                at: site,
+                site,
                 input: input
             )
-        } catch let failure as AgentProgramInferenceFailure {
+        } catch let failure as ProgramInferenceFailure {
             return try await handling(
                 failure
             )
         }
     }
 
-    public func infer<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        at site: AgentInferenceSiteIdentifier,
-        input: Inference.Input,
-        handling: AgentProgramFailureDispositionHandler<
-            AgentProgramInferenceFailure,
-            Inference.Output
+    public func infer<
+        ProgramType: Program,
+        InferenceType: Inference
+    >(
+        _ site: InferenceSite<
+            ProgramType,
+            InferenceType
+        >,
+        input: InferenceType.Input,
+        handling: ProgramFailureDispositionHandler<
+            ProgramInferenceFailure,
+            InferenceType.Output
         >
-    ) async throws -> Inference.Output {
+    ) async throws -> InferenceType.Output {
         do {
             return try await infer(
-                inference,
-                at: site,
+                site,
                 input: input
             )
-        } catch let failure as AgentProgramInferenceFailure {
+        } catch let failure as ProgramInferenceFailure {
             switch try await handling(
                 failure
             ) {
@@ -124,7 +136,7 @@ public struct AgentProgramContext: Sendable {
     }
 
     public func invoke<Input, Output>(
-        _ identifier: AgentToolIdentifier,
+        _ identifier: ToolIdentifier,
         input: Input,
         as output: Output.Type
     ) async throws -> Output
@@ -133,7 +145,7 @@ public struct AgentProgramContext: Sendable {
         Output: Decodable & Sendable
     {
         guard let toolInvoker else {
-            throw AgentProgramContextError.toolInvocationUnavailable
+            throw ProgramContextError.toolInvocationUnavailable
         }
 
         return try await toolInvoker.invoke(
@@ -144,11 +156,11 @@ public struct AgentProgramContext: Sendable {
     }
 
     public func invoke<Input, Output>(
-        _ identifier: AgentToolIdentifier,
+        _ identifier: ToolIdentifier,
         input: Input,
         as output: Output.Type,
-        handling: AgentProgramFailureHandler<
-            AgentProgramToolFailure,
+        handling: ProgramFailureHandler<
+            ProgramToolFailure,
             Output
         >
     ) async throws -> Output
@@ -162,17 +174,17 @@ public struct AgentProgramContext: Sendable {
                 input: input,
                 as: output
             )
-        } catch let failure as AgentProgramToolFailure {
+        } catch let failure as ProgramToolFailure {
             return try await handling(failure)
         }
     }
 
     public func invoke<Input, Output>(
-        _ identifier: AgentToolIdentifier,
+        _ identifier: ToolIdentifier,
         input: Input,
         as output: Output.Type,
-        handling: AgentProgramFailureDispositionHandler<
-            AgentProgramToolFailure,
+        handling: ProgramFailureDispositionHandler<
+            ProgramToolFailure,
             Output
         >
     ) async throws -> Output
@@ -186,7 +198,7 @@ public struct AgentProgramContext: Sendable {
                 input: input,
                 as: output
             )
-        } catch let failure as AgentProgramToolFailure {
+        } catch let failure as ProgramToolFailure {
             switch try await handling(failure) {
             case .recover(let output):
                 return output
@@ -201,7 +213,7 @@ public struct AgentProgramContext: Sendable {
         _ request: UserInputRequest
     ) async throws -> UserInputResponse {
         guard let userInputInvoker else {
-            throw AgentProgramContextError.userInputUnavailable
+            throw ProgramContextError.userInputUnavailable
         }
 
         return try await userInputInvoker.ask(
@@ -209,12 +221,12 @@ public struct AgentProgramContext: Sendable {
         )
     }
 
-    public func run<Program: AgentProgram>(
-        _ program: Program.Type,
-        input: Program.Input
-    ) async throws -> Program.Output {
+    public func run<ProgramType: ExecutableProgram>(
+        _ program: ProgramType.Type,
+        input: ProgramType.Input
+    ) async throws -> ProgramType.Output {
         guard let programInvoker else {
-            throw AgentProgramContextError.programInvocationUnavailable
+            throw ProgramContextError.programInvocationUnavailable
         }
 
         return try await programInvoker.invoke(
@@ -226,7 +238,7 @@ public struct AgentProgramContext: Sendable {
 
     public func requireArtifactStore() throws -> any AgentArtifactStore {
         guard let artifactStore else {
-            throw AgentProgramContextError.artifactStorageUnavailable
+            throw ProgramContextError.artifactStorageUnavailable
         }
 
         return artifactStore

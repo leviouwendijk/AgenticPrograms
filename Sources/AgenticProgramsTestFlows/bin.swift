@@ -1,15 +1,15 @@
 import TestFlows
 
 @main
-enum AgenticProgramsFlowTestMain {
+enum ProgramsFlowTestMain {
     static func main() async {
         await TestFlowCLI.run(
-            suite: AgenticProgramsFlowSuite.self
+            suite: ProgramsFlowSuite.self
         )
     }
 }
 
-enum AgenticProgramsFlowSuite: TestFlowRegistry {
+enum ProgramsFlowSuite: TestFlowRegistry {
     static let title = "AgenticPrograms flow tests"
 
     static let flows: [TestFlow] = [
@@ -22,7 +22,7 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "type-erasure",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramRegistry()
         },
         TestFlow(
@@ -35,7 +35,7 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "registration",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramRegistrationComposition()
         },
         TestFlow(
@@ -48,11 +48,11 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "execution",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramInferenceBridge()
         },
         TestFlow(
-            "determine-next-action-program",
+            "select-next-action",
             tags: [
                 "agentic-programs",
                 "program",
@@ -61,8 +61,8 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "composition",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
-                .runDetermineNextActionProgram()
+            try await ProgramsFlowTesting
+                .runSelectNextAction()
         },
         TestFlow(
             "nested-program-composition",
@@ -74,7 +74,7 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "nested",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runNestedProgramComposition()
         },
         TestFlow(
@@ -88,11 +88,11 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "assessment",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runReviewedActionSelection()
         },
         TestFlow(
-            "program-inference-binding-parsing",
+            "program-realization-parsing",
             tags: [
                 "agentic-programs",
                 "program",
@@ -102,8 +102,8 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "codable",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
-                .runProgramInferenceBindingParsing()
+            try await ProgramsFlowTesting
+                .runProgramRealizationParsing()
         },
         TestFlow(
             "program-user-input-context",
@@ -115,7 +115,7 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "context",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramUserInputContext()
         },
         TestFlow(
@@ -129,7 +129,7 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "handling",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramToolFailureHandling()
         },
         TestFlow(
@@ -143,10 +143,10 @@ enum AgenticProgramsFlowSuite: TestFlowRegistry {
                 "handling",
             ]
         ) {
-            try await AgenticProgramsFlowTesting
+            try await ProgramsFlowTesting
                 .runProgramInferenceFailureHandling()
         },
     ]
 }
 
-enum AgenticProgramsFlowTesting {}
+enum ProgramsFlowTesting {}

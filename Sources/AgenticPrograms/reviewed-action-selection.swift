@@ -1,3 +1,4 @@
+import Agentic
 import AgenticInference
 import Foundation
 
@@ -26,7 +27,8 @@ public enum ReviewedActionSelectionError:
     }
 }
 
-public struct ReviewedActionSelection: AgentProgram, Sendable {
+@Program
+public struct ReviewedActionSelection {
     public typealias Input = DetermineNextAction.Input
 
     public struct Output:
@@ -46,33 +48,25 @@ public struct ReviewedActionSelection: AgentProgram, Sendable {
         }
     }
 
-    public static let selectionSite: AgentInferenceSiteIdentifier =
-        "select_action"
+    public static let purpose =
+        "Select an action, assess the selected candidate, and return it only when the assessment accepts it."
 
-    public static let assessmentSite: AgentInferenceSiteIdentifier =
-        "assess_action"
+    @InferenceSite
+    public static var selection:
+        Site<DetermineNextAction>
 
-    public static let descriptor = AgentProgramDescriptor(
-        identifier: "reviewed_action_selection",
-        title: "Reviewed Action Selection",
-        summary: "Select an action, assess the selected candidate, and return it only when the assessment accepts it.",
-        tags: [
-            "decision",
-            "assessment",
-            "multi-stage",
-            "inference",
-        ]
-    )
+    @InferenceSite
+    public static var assessment:
+        Site<AssessCandidateAction>
 
     public init() {}
 
     public func run(
         _ input: Input,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> Output {
         let decision = try await context.infer(
-            DetermineNextAction.self,
-            at: Self.selectionSite,
+            Self.selection,
             input: input
         )
 
@@ -87,8 +81,7 @@ public struct ReviewedActionSelection: AgentProgram, Sendable {
         }
 
         let assessment = try await context.infer(
-            AssessCandidateAction.self,
-            at: Self.assessmentSite,
+            Self.assessment,
             input: AssessCandidateAction.Input(
                 goal: input.goal,
                 state: input.state,
@@ -109,3 +102,7 @@ public struct ReviewedActionSelection: AgentProgram, Sendable {
         )
     }
 }
+
+extension ReviewedActionSelection:
+    ExecutableProgram
+{}

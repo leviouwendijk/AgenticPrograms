@@ -1,11 +1,12 @@
+import Agentic
 import AgenticInference
 import AgenticPrograms
 import Foundation
 import TestFlows
 
 private struct ReviewedActionObservation: Sendable {
-    let inference: AgentInferenceIdentifier
-    let strategy: AgentInferenceStrategyIdentifier
+    let inference: InferenceIdentifier
+    let strategy: InferenceStrategyIdentifier
 }
 
 private actor ReviewedActionRecorder {
@@ -25,7 +26,7 @@ private actor ReviewedActionRecorder {
 }
 
 private struct ReviewedActionFixtureExecutor:
-    AgentInferenceExecuting,
+    InferenceExecuting,
     Sendable
 {
     let selectedActionIdentifier: String
@@ -33,11 +34,15 @@ private struct ReviewedActionFixtureExecutor:
     let assessment: String
     let recorder: ReviewedActionRecorder
 
-    func execute<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        input: Inference.Input,
-        realization: AgentInferenceRealization
-    ) async throws -> AgentInferenceExecutionResult<Inference.Output> {
+    func execute<InferenceType: Inference>(
+        _ inference: InferenceType.Type,
+        input: InferenceType.Input,
+        realization: InferenceRealizationConfiguration,
+        context: InferenceExecutionContext
+    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
+        _ = input
+        _ = context
+
         await recorder.append(
             ReviewedActionObservation(
                 inference: inference.definition.identifier,
@@ -70,13 +75,13 @@ private struct ReviewedActionFixtureExecutor:
         }
 
         let output = try JSONDecoder().decode(
-            Inference.Output.self,
+            InferenceType.Output.self,
             from: encoded
         )
 
-        return AgentInferenceExecutionResult(
+        return InferenceExecutionResult(
             output: output,
-            record: AgentInferenceExecutionRecord(
+            record: InferenceExecutionRecord(
                 inference: inference.definition.identifier,
                 strategy: realization.strategy,
                 metadata: [
@@ -88,10 +93,34 @@ private struct ReviewedActionFixtureExecutor:
 }
 
 private enum ReviewedActionFixtureError: Error {
-    case unexpectedInference(AgentInferenceIdentifier)
+    case unexpectedInference(InferenceIdentifier)
 }
 
-extension AgenticProgramsFlowTesting {
+@InferenceRealization
+private struct ReviewedSelectionRealization {
+    typealias InferenceType =
+        DetermineNextAction
+
+    static let strategy:
+        InferenceStrategyIdentifier = .native_reasoning
+
+    static let instructions =
+        "Select the best next candidate."
+}
+
+@InferenceRealization
+private struct ReviewedAssessmentRealization {
+    typealias InferenceType =
+        AssessCandidateAction
+
+    static let strategy:
+        InferenceStrategyIdentifier = .direct
+
+    static let instructions =
+        "Assess whether the selected candidate should proceed."
+}
+
+extension ProgramsFlowTesting {
     static func runReviewedActionSelection()
         async throws
         -> [TestFlowDiagnostic]
@@ -111,21 +140,6 @@ extension AgenticProgramsFlowTesting {
             ]
         )
 
-        let selectionRealization = AgentInferenceRealization(
-            strategy: .native_reasoning,
-            modelSelection: .executor,
-            instructions: "Select the best next candidate.",
-            budget: .singleAttempt,
-            adapter: "fixture_adapter"
-        )
-        let assessmentRealization = AgentInferenceRealization(
-            strategy: .direct,
-            modelSelection: .reviewer,
-            instructions: "Assess whether the selected candidate should proceed.",
-            budget: .singleAttempt,
-            adapter: "fixture_adapter"
-        )
-
         let recorder = ReviewedActionRecorder()
         let executor = ReviewedActionFixtureExecutor(
             selectedActionIdentifier: "publish",
@@ -133,28 +147,19 @@ extension AgenticProgramsFlowTesting {
             assessment: "The completed and tested change is ready to publish.",
             recorder: recorder
         )
-        let realization = AgentProgramRealization<ReviewedActionSelection>(
-            id: "fixture.reviewed_action_selection",
-            inferences: try AgentProgramInferenceBindings(
-                [
-                    AgentInferenceRealizationBinding(
-                        site: ReviewedActionSelection.selectionSite,
-                        inference: DetermineNextAction.definition.identifier,
-                        realization: selectionRealization
-                    ),
-                    AgentInferenceRealizationBinding(
-                        site: ReviewedActionSelection.assessmentSite,
-                        inference: AssessCandidateAction.definition.identifier,
-                        realization: assessmentRealization
-                    ),
-                ]
+        let realization = ReviewedActionSelection.realization {
+            ReviewedActionSelection.selection.use(
+                ReviewedSelectionRealization.self
             )
-        )
-        let invoker = AgentProgramInferenceInvoker(
+            ReviewedActionSelection.assessment.use(
+                ReviewedAssessmentRealization.self
+            )
+        }
+        let invoker = ProgramInferenceInvoker(
             realization: realization,
             executor: executor
         )
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             inference: invoker
         )
 
@@ -207,11 +212,11 @@ extension AgenticProgramsFlowTesting {
             assessment: "Publishing is not appropriate yet.",
             recorder: rejectedRecorder
         )
-        let rejectedInvoker = AgentProgramInferenceInvoker(
+        let rejectedInvoker = ProgramInferenceInvoker(
             realization: realization,
             executor: rejectedExecutor
         )
-        let rejectedContext = AgentProgramContext(
+        let rejectedContext = ProgramContext(
             inference: rejectedInvoker
         )
 
@@ -238,7 +243,7 @@ extension AgenticProgramsFlowTesting {
         return [
             .field(
                 "program",
-                ReviewedActionSelection.descriptor.identifier.rawValue
+                ReviewedActionSelection.definition.identifier.rawValue
             ),
             .field(
                 "selected",

@@ -1,9 +1,11 @@
-extension ProgramRegistry: AgentProgramInvoking {
-    public func invoke<Program: AgentProgram>(
-        _ program: Program.Type,
-        input: Program.Input,
-        in context: AgentProgramContext
-    ) async throws -> Program.Output {
+import Agentic
+
+extension ProgramRegistry: ProgramInvoking {
+    public func invoke<ProgramType: ExecutableProgram>(
+        _ program: ProgramType.Type,
+        input: ProgramType.Input,
+        in context: ProgramContext
+    ) async throws -> ProgramType.Output {
         try await run(
             program,
             input: input,

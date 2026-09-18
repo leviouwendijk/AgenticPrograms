@@ -1,11 +1,11 @@
+import Agentic
 import AgenticInference
 import AgenticPrograms
 import Foundation
 import TestFlows
 
-private struct ProgramInferenceFailureFixtureInference:
-    AgentInference
-{
+@Inference
+private struct FailureInference {
     struct Input:
         Sendable,
         Codable
@@ -15,10 +15,49 @@ private struct ProgramInferenceFailureFixtureInference:
 
     typealias Output = String
 
-    static let definition = AgentInferenceDefinition(
-        identifier: "fixture.program_inference_failure",
-        purpose: "Prove Program inference failure handling."
-    )
+    static let purpose =
+        "Prove Program inference failure handling."
+}
+
+@Program
+private struct InferenceFailureFixture {
+    typealias Input = String
+    typealias Output = String
+
+    static let purpose =
+        "Prove typed Program inference failure handling."
+
+    @InferenceSite
+    static var failure:
+        Site<FailureInference>
+
+    func run(
+        _ input: String,
+        in context: ProgramContext
+    ) async throws -> String {
+        try await context.infer(
+            Self.failure,
+            input: .init(
+                value: input
+            )
+        )
+    }
+}
+
+extension InferenceFailureFixture:
+    ExecutableProgram
+{}
+
+@InferenceRealization
+private struct FailureRealization {
+    typealias InferenceType =
+        FailureInference
+
+    static let strategy:
+        InferenceStrategyIdentifier = .direct
+
+    static let instructions =
+        "Fail deterministically."
 }
 
 private enum ProgramInferenceFailureFixtureError:
@@ -34,117 +73,78 @@ private enum ProgramInferenceFailureFixtureError:
 }
 
 private struct ProgramInferenceFailureFixtureExecutor:
-    AgentInferenceExecuting,
+    InferenceExecuting,
     Sendable
 {
-    func execute<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        input: Inference.Input,
-        realization: AgentInferenceRealization
+    func execute<InferenceType: Inference>(
+        _ inference: InferenceType.Type,
+        input: InferenceType.Input,
+        realization: InferenceRealizationConfiguration,
+        context: InferenceExecutionContext
     ) async throws
-        -> AgentInferenceExecutionResult<Inference.Output>
+        -> InferenceExecutionResult<InferenceType.Output>
     {
+        _ = inference
+        _ = input
+        _ = realization
+        _ = context
+
         throw ProgramInferenceFailureFixtureError.failed
     }
 }
 
 private struct ProgramInferenceCanonicalFailureFixtureExecutor:
-    AgentInferenceExecuting,
+    InferenceExecuting,
     Sendable
 {
-    let failure: AgentInferenceExecutionFailure
+    let failure: InferenceExecutionFailure
 
-    func execute<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        input: Inference.Input,
-        realization: AgentInferenceRealization
+    func execute<InferenceType: Inference>(
+        _ inference: InferenceType.Type,
+        input: InferenceType.Input,
+        realization: InferenceRealizationConfiguration,
+        context: InferenceExecutionContext
     ) async throws
-        -> AgentInferenceExecutionResult<Inference.Output>
+        -> InferenceExecutionResult<InferenceType.Output>
     {
+        _ = inference
+        _ = input
+        _ = realization
+        _ = context
+
         throw failure
     }
 }
 
-private struct ProgramInferenceFailureFixtureProgram:
-    AgentProgram
-{
-    typealias Input = String
-    typealias Output = String
-
-    static let site: AgentInferenceSiteIdentifier =
-        "fixture.program_inference_failure.site"
-
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.program_inference_failure_program",
-        title: "Program Inference Failure",
-        summary: "Proves typed Program inference failure handling."
-    )
-
-    func run(
-        _ input: String,
-        in context: AgentProgramContext
-    ) async throws -> String {
-        try await context.infer(
-            ProgramInferenceFailureFixtureInference.self,
-            at: Self.site,
-            input: .init(
-                value: input
-            )
-        )
-    }
-}
-
-extension AgenticProgramsFlowTesting {
+extension ProgramsFlowTesting {
     static func runProgramInferenceFailureHandling()
         async throws
         -> [TestFlowDiagnostic]
     {
-        let boundRealization = AgentInferenceRealization(
-            strategy: .direct,
-            modelSelection: .executor,
-            instructions: "Fail deterministically.",
-            budget: .singleAttempt
-        )
-
-        let realization =
-            AgentProgramRealization<
-                ProgramInferenceFailureFixtureProgram
-            >(
-                id: "fixture.program_inference_failure_realization",
-                inferences: try AgentProgramInferenceBindings(
-                    [
-                        AgentInferenceRealizationBinding(
-                            site:
-                                ProgramInferenceFailureFixtureProgram
-                                    .site,
-                            inference:
-                                ProgramInferenceFailureFixtureInference
-                                    .definition
-                                    .identifier,
-                            realization: boundRealization
-                        ),
-                    ]
-                )
+        let realization = InferenceFailureFixture.realization {
+            InferenceFailureFixture.failure.use(
+                FailureRealization.self
             )
+        }
 
-        let invoker = AgentProgramInferenceInvoker(
+        let invoker = ProgramInferenceInvoker(
             realization: realization,
             executor: ProgramInferenceFailureFixtureExecutor()
         )
 
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             inference: invoker
         )
 
-        var plainFailure: AgentProgramInferenceFailure?
+        var plainFailure: ProgramInferenceFailure?
 
         do {
-            _ = try await ProgramInferenceFailureFixtureProgram()
+            _ = try await InferenceFailureFixture()
                 .run(
                     "plain",
                     in: context
                 )
-        } catch let failure as AgentProgramInferenceFailure {
+        } catch let failure as ProgramInferenceFailure {
             plainFailure = failure
         }
 
@@ -155,14 +155,12 @@ extension AgenticProgramsFlowTesting {
 
         try Expect.equal(
             observed.site,
-            ProgramInferenceFailureFixtureProgram.site,
+            InferenceFailureFixture.failure.identifier,
             "typed inference failure preserves Program site"
         )
         try Expect.equal(
             observed.inference,
-            ProgramInferenceFailureFixtureInference
-                .definition
-                .identifier,
+            FailureInference.definition.identifier,
             "typed inference failure preserves semantic inference"
         )
         try Expect.equal(
@@ -182,34 +180,34 @@ extension AgenticProgramsFlowTesting {
             "arbitrary custom executor errors retain the fallback Program failure representation"
         )
 
-        let canonicalExecutionFailure = AgentInferenceExecutionFailure(
+        let canonicalExecutionFailure = InferenceExecutionFailure(
             capturing: ProgramInferenceFailureFixtureError.failed,
-            inference: ProgramInferenceFailureFixtureInference
+            inference: FailureInference
                 .definition
                 .identifier,
             strategy: .direct,
-            budget: boundRealization.budget,
+            budget: FailureRealization.definition.configuration.budget,
             metadata: [
                 "fixture": "canonical_program_failure",
             ]
         )
-        let canonicalContext = AgentProgramContext(
-            inference: AgentProgramInferenceInvoker(
+        let canonicalContext = ProgramContext(
+            inference: ProgramInferenceInvoker(
                 realization: realization,
                 executor: ProgramInferenceCanonicalFailureFixtureExecutor(
                     failure: canonicalExecutionFailure
                 )
             )
         )
-        var canonicalProgramFailure: AgentProgramInferenceFailure?
+        var canonicalProgramFailure: ProgramInferenceFailure?
 
         do {
-            _ = try await ProgramInferenceFailureFixtureProgram()
+            _ = try await InferenceFailureFixture()
                 .run(
                     "canonical",
                     in: canonicalContext
                 )
-        } catch let failure as AgentProgramInferenceFailure {
+        } catch let failure as ProgramInferenceFailure {
             canonicalProgramFailure = failure
         }
 
@@ -249,8 +247,7 @@ extension AgenticProgramsFlowTesting {
         )
 
         let canonicalHandled: String = try await canonicalContext.infer(
-            ProgramInferenceFailureFixtureInference.self,
-            at: ProgramInferenceFailureFixtureProgram.site,
+            InferenceFailureFixture.failure,
             input: .init(
                 value: "canonical-handler"
             )
@@ -272,17 +269,16 @@ extension AgenticProgramsFlowTesting {
         )
 
         let manual: String = try await context.infer(
-            ProgramInferenceFailureFixtureInference.self,
-            at: ProgramInferenceFailureFixtureProgram.site,
+            InferenceFailureFixture.failure,
             input: .init(
                 value: "manual"
             )
         ) { failure -> String in
             guard
                 failure.site ==
-                    ProgramInferenceFailureFixtureProgram.site,
+                    InferenceFailureFixture.failure.identifier,
                 failure.inference ==
-                    ProgramInferenceFailureFixtureInference
+                    FailureInference
                         .definition
                         .identifier
             else {
@@ -293,17 +289,16 @@ extension AgenticProgramsFlowTesting {
         }
 
         let disposition: String = try await context.infer(
-            ProgramInferenceFailureFixtureInference.self,
-            at: ProgramInferenceFailureFixtureProgram.site,
+            InferenceFailureFixture.failure,
             input: .init(
                 value: "disposition"
             )
-        ) { failure -> AgentProgramInferenceFailure.Handling<String> in
+        ) { failure -> ProgramInferenceFailure.Handling<String> in
             guard
                 failure.site ==
-                    ProgramInferenceFailureFixtureProgram.site,
+                    InferenceFailureFixture.failure.identifier,
                 failure.inference ==
-                    ProgramInferenceFailureFixtureInference
+                    FailureInference
                         .definition
                         .identifier
             else {
@@ -319,20 +314,19 @@ extension AgenticProgramsFlowTesting {
 
         do {
             _ = try await context.infer(
-                ProgramInferenceFailureFixtureInference.self,
-                at: ProgramInferenceFailureFixtureProgram.site,
+                InferenceFailureFixture.failure,
                 input: .init(
                     value: "propagate"
                 )
-            ) { _ -> AgentProgramInferenceFailure.Handling<String> in
+            ) { _ -> ProgramInferenceFailure.Handling<String> in
                 .propagate
             }
-        } catch let failure as AgentProgramInferenceFailure {
+        } catch let failure as ProgramInferenceFailure {
             propagated =
                 failure.site ==
-                    ProgramInferenceFailureFixtureProgram.site &&
-                failure.inference ==
-                    ProgramInferenceFailureFixtureInference
+                    InferenceFailureFixture.failure.identifier
+                && failure.inference ==
+                    FailureInference
                         .definition
                         .identifier
         }

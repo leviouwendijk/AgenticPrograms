@@ -3,22 +3,29 @@ import Primitives
 
 public struct ProgramRegistry: Sendable {
     private var programs:
-        [AgentProgramIdentifier: RegisteredAgentProgram]
+        [ProgramIdentifier: RegisteredProgram]
 
     public init() {
         self.programs = [:]
     }
 
-    public var descriptors: [AgentProgramDescriptor] {
+    public var definitions: [ProgramDefinition] {
         programs.values
-            .map(\.descriptor)
+            .map(\.definition)
             .sorted { lhs, rhs in
-                if lhs.title == rhs.title {
+                let left =
+                    lhs.title
+                    ?? lhs.identifier.rawValue
+                let right =
+                    rhs.title
+                    ?? rhs.identifier.rawValue
+
+                if left == right {
                     return lhs.identifier.rawValue
                         < rhs.identifier.rawValue
                 }
 
-                return lhs.title < rhs.title
+                return left < right
             }
     }
 
@@ -30,18 +37,20 @@ public struct ProgramRegistry: Sendable {
         programs.count
     }
 
-    public mutating func register<Program: AgentProgram>(
-        _ program: Program
+    public mutating func register<
+        ProgramType: ExecutableProgram
+    >(
+        _ program: ProgramType
     ) throws {
         try register(
-            RegisteredAgentProgram(
+            RegisteredProgram(
                 program
             )
         )
     }
 
     public mutating func register(
-        _ registered: RegisteredAgentProgram
+        _ registered: RegisteredProgram
     ) throws {
         let identifier = registered.identifier
 
@@ -55,7 +64,7 @@ public struct ProgramRegistry: Sendable {
     }
 
     public mutating func register(
-        _ programSet: any AgentProgramSet
+        _ programSet: any ProgramSet
     ) throws {
         try programSet.register(
             into: &self
@@ -63,7 +72,7 @@ public struct ProgramRegistry: Sendable {
     }
 
     public mutating func register(
-        from provider: any AgentProgramProvider
+        from provider: any ProgramProvider
     ) throws {
         try provider.registerPrograms(
             into: &self
@@ -71,24 +80,24 @@ public struct ProgramRegistry: Sendable {
     }
 
     public func registeredProgram(
-        identifiedBy identifier: AgentProgramIdentifier
-    ) -> RegisteredAgentProgram? {
+        identifiedBy identifier: ProgramIdentifier
+    ) -> RegisteredProgram? {
         programs[identifier]
     }
 
     public func registeredProgram(
         named name: String
-    ) -> RegisteredAgentProgram? {
+    ) -> RegisteredProgram? {
         registeredProgram(
             identifiedBy: .init(
-                name
+                rawValue: name
             )
         )
     }
 
     public func requireProgram(
-        identifiedBy identifier: AgentProgramIdentifier
-    ) throws -> RegisteredAgentProgram {
+        identifiedBy identifier: ProgramIdentifier
+    ) throws -> RegisteredProgram {
         guard let program = registeredProgram(
             identifiedBy: identifier
         ) else {
@@ -101,9 +110,9 @@ public struct ProgramRegistry: Sendable {
     }
 
     public func run(
-        identifiedBy identifier: AgentProgramIdentifier,
+        identifiedBy identifier: ProgramIdentifier,
         input: JSONValue,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> JSONValue {
         let program = try requireProgram(
             identifiedBy: identifier
@@ -115,23 +124,24 @@ public struct ProgramRegistry: Sendable {
         )
     }
 
-    public func run<Program: AgentProgram>(
-        _ program: Program.Type,
-        input: Program.Input,
-        in context: AgentProgramContext
-    ) async throws -> Program.Output {
-        let encodedInput = try JSONToolBridge.encode(
+    public func run<
+        ProgramType: ExecutableProgram
+    >(
+        _ program: ProgramType.Type,
+        input: ProgramType.Input,
+        in context: ProgramContext
+    ) async throws -> ProgramType.Output {
+        let encodedInput = try JSONValueCodec.encodeValue(
             input
         )
         let encodedOutput = try await run(
-            identifiedBy: Program.descriptor.identifier,
+            identifiedBy: ProgramType.definition.identifier,
             input: encodedInput,
             in: context
         )
 
-        return try JSONToolBridge.decode(
-            Program.Output.self,
-            from: encodedOutput
+        return try encodedOutput.as(
+            ProgramType.Output.self
         )
     }
 }

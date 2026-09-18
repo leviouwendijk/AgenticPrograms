@@ -1,3 +1,4 @@
+import Agentic
 import AgenticPrograms
 import TestFlows
 
@@ -18,19 +19,17 @@ private struct NestedProgramOutput:
     let inheritedScope: String?
 }
 
-private struct NestedChildProgram: AgentProgram {
+@Program
+private struct NestedChild {
     typealias Input = NestedProgramInput
     typealias Output = NestedProgramOutput
 
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.nested_child",
-        title: "Nested Child",
-        summary: "Fixture child program used to prove nested program invocation."
-    )
+    static let purpose =
+        "Fixture child program used to prove nested program invocation."
 
     func run(
         _ input: Input,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> Output {
         Output(
             value: input.value.uppercased(),
@@ -39,22 +38,24 @@ private struct NestedChildProgram: AgentProgram {
     }
 }
 
-private struct NestedParentProgram: AgentProgram {
+extension NestedChild:
+    ExecutableProgram
+{}
+
+@Program
+private struct NestedParent {
     typealias Input = NestedProgramInput
     typealias Output = NestedProgramOutput
 
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.nested_parent",
-        title: "Nested Parent",
-        summary: "Fixture parent program that composes another registered program."
-    )
+    static let purpose =
+        "Fixture parent program that composes another registered program."
 
     func run(
         _ input: Input,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> Output {
         let child = try await context.run(
-            NestedChildProgram.self,
+            NestedChild.self,
             input: input
         )
 
@@ -65,7 +66,11 @@ private struct NestedParentProgram: AgentProgram {
     }
 }
 
-extension AgenticProgramsFlowTesting {
+extension NestedParent:
+    ExecutableProgram
+{}
+
+extension ProgramsFlowTesting {
     static func runNestedProgramComposition()
         async throws
         -> [TestFlowDiagnostic]
@@ -73,13 +78,13 @@ extension AgenticProgramsFlowTesting {
         var registry = ProgramRegistry()
 
         try registry.register(
-            NestedChildProgram()
+            NestedChild()
         )
         try registry.register(
-            NestedParentProgram()
+            NestedParent()
         )
 
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             programs: registry,
             metadata: [
                 "scope": "preserved",
@@ -87,7 +92,7 @@ extension AgenticProgramsFlowTesting {
         )
 
         let output = try await registry.run(
-            NestedParentProgram.self,
+            NestedParent.self,
             input: NestedProgramInput(
                 value: "nested"
             ),
@@ -113,11 +118,11 @@ extension AgenticProgramsFlowTesting {
         return [
             .field(
                 "parent",
-                NestedParentProgram.descriptor.identifier.rawValue
+                NestedParent.definition.identifier.rawValue
             ),
             .field(
                 "child",
-                NestedChildProgram.descriptor.identifier.rawValue
+                NestedChild.definition.identifier.rawValue
             ),
             .field(
                 "output",

@@ -1,7 +1,8 @@
+import Agentic
 import AgenticInference
 import Foundation
 
-public enum DetermineNextActionProgramError:
+public enum SelectNextActionError:
     Error,
     Sendable,
     LocalizedError
@@ -16,36 +17,26 @@ public enum DetermineNextActionProgramError:
     }
 }
 
-public struct DetermineNextActionProgram:
-    AgentProgram,
-    Sendable
-{
+@Program
+public struct SelectNextAction {
     public typealias Input = DetermineNextAction.Input
     public typealias Output = DetermineNextAction.Candidate
 
-    public static let inferenceSite: AgentInferenceSiteIdentifier =
-        "determine_next_action"
+    public static let purpose =
+        "Select and resolve the next action from an explicit candidate set using DetermineNextAction."
 
-    public static let descriptor = AgentProgramDescriptor(
-        identifier: "select_next_action",
-        title: "Select Next Action",
-        summary: "Select and resolve the next action from an explicit candidate set using DetermineNextAction.",
-        tags: [
-            "decision",
-            "action-selection",
-            "inference",
-        ]
-    )
+    @InferenceSite
+    public static var selection:
+        Site<DetermineNextAction>
 
     public init() {}
 
     public func run(
         _ input: Input,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> Output {
         let decision = try await context.infer(
-            DetermineNextAction.self,
-            at: Self.inferenceSite,
+            Self.selection,
             input: input
         )
 
@@ -54,7 +45,7 @@ public struct DetermineNextActionProgram:
                 $0.identifier == decision.selectedActionIdentifier
             }
         ) else {
-            throw DetermineNextActionProgramError.selectedActionUnavailable(
+            throw SelectNextActionError.selectedActionUnavailable(
                 decision.selectedActionIdentifier
             )
         }
@@ -62,3 +53,7 @@ public struct DetermineNextActionProgram:
         return candidate
     }
 }
+
+extension SelectNextAction:
+    ExecutableProgram
+{}

@@ -1,47 +1,46 @@
 import Agentic
 import Primitives
 
-/// Registry-facing executable representation of one typed AgentProgram.
+/// Registry-facing executable representation of one typed Program.
 ///
 /// Registration captures the concrete Program/Input/Output types once. Dynamic
 /// registry storage thereafter operates on JSONValue only at this explicit
-/// lowering boundary while authored AgentProgram implementations remain typed.
-public struct RegisteredAgentProgram: Sendable {
-    public let descriptor: AgentProgramDescriptor
+/// lowering boundary while authored Programs remain typed.
+public struct RegisteredProgram: Sendable {
+    public let definition: ProgramDefinition
 
     private let runHandler:
         @Sendable (
             JSONValue,
-            AgentProgramContext
+            ProgramContext
         ) async throws -> JSONValue
 
-    public init<Program: AgentProgram>(
-        _ program: Program
+    public init<ProgramType: ExecutableProgram>(
+        _ program: ProgramType
     ) {
-        self.descriptor = Program.descriptor
+        self.definition = ProgramType.definition
         self.runHandler = { input, context in
-            let decoded = try JSONToolBridge.decode(
-                Program.Input.self,
-                from: input
+            let decoded = try input.as(
+                ProgramType.Input.self
             )
             let output = try await program.run(
                 decoded,
                 in: context
             )
 
-            return try JSONToolBridge.encode(
+            return try JSONValueCodec.encodeValue(
                 output
             )
         }
     }
 
-    public var identifier: AgentProgramIdentifier {
-        descriptor.identifier
+    public var identifier: ProgramIdentifier {
+        definition.identifier
     }
 
     public func run(
         input: JSONValue,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> JSONValue {
         try await runHandler(
             input,

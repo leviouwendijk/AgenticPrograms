@@ -3,7 +3,7 @@ import AgenticPrograms
 import TestFlows
 
 private struct ProgramUserInputContextFixture:
-    AgentProgramUserInputInvoking
+    ProgramUserInputInvoking
 {
     let response: UserInputResponse
 
@@ -15,7 +15,7 @@ private struct ProgramUserInputContextFixture:
     }
 }
 
-extension AgenticProgramsFlowTesting {
+extension ProgramsFlowTesting {
     static func runProgramUserInputContext()
         async throws
         -> [TestFlowDiagnostic]
@@ -29,7 +29,7 @@ extension AgenticProgramsFlowTesting {
             ),
             for: request
         )
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             userInput: ProgramUserInputContextFixture(
                 response: expected
             )
@@ -47,10 +47,10 @@ extension AgenticProgramsFlowTesting {
         var unavailable = false
 
         do {
-            _ = try await AgentProgramContext().ask(
+            _ = try await ProgramContext().ask(
                 request
             )
-        } catch AgentProgramContextError.userInputUnavailable {
+        } catch ProgramContextError.userInputUnavailable {
             unavailable = true
         }
 

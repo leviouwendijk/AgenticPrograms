@@ -1,43 +1,48 @@
+import Agentic
 import AgenticInference
 import AgenticPrograms
 import Foundation
 import TestFlows
 
-private struct DetermineNextActionExecutionObservation: Sendable {
-    let inference: AgentInferenceIdentifier
-    let strategy: AgentInferenceStrategyIdentifier
+private struct SelectNextActionExecutionObservation: Sendable {
+    let inference: InferenceIdentifier
+    let strategy: InferenceStrategyIdentifier
 }
 
-private actor DetermineNextActionExecutionRecorder {
-    private var observations: [DetermineNextActionExecutionObservation] = []
+private actor SelectNextActionExecutionRecorder {
+    private var observations: [SelectNextActionExecutionObservation] = []
 
     func append(
-        _ observation: DetermineNextActionExecutionObservation
+        _ observation: SelectNextActionExecutionObservation
     ) {
         observations.append(
             observation
         )
     }
 
-    func snapshot() -> [DetermineNextActionExecutionObservation] {
+    func snapshot() -> [SelectNextActionExecutionObservation] {
         observations
     }
 }
 
-private struct DetermineNextActionFixtureExecutor:
-    AgentInferenceExecuting,
+private struct SelectNextActionFixtureExecutor:
+    InferenceExecuting,
     Sendable
 {
     let selectedActionIdentifier: String
-    let recorder: DetermineNextActionExecutionRecorder
+    let recorder: SelectNextActionExecutionRecorder
 
-    func execute<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        input: Inference.Input,
-        realization: AgentInferenceRealization
-    ) async throws -> AgentInferenceExecutionResult<Inference.Output> {
+    func execute<InferenceType: Inference>(
+        _ inference: InferenceType.Type,
+        input: InferenceType.Input,
+        realization: InferenceRealizationConfiguration,
+        context: InferenceExecutionContext
+    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
+        _ = input
+        _ = context
+
         await recorder.append(
-            DetermineNextActionExecutionObservation(
+            SelectNextActionExecutionObservation(
                 inference: inference.definition.identifier,
                 strategy: realization.strategy
             )
@@ -49,25 +54,37 @@ private struct DetermineNextActionFixtureExecutor:
             )
         )
         let output = try JSONDecoder().decode(
-            Inference.Output.self,
+            InferenceType.Output.self,
             from: encoded
         )
 
-        return AgentInferenceExecutionResult(
+        return InferenceExecutionResult(
             output: output,
-            record: AgentInferenceExecutionRecord(
+            record: InferenceExecutionRecord(
                 inference: inference.definition.identifier,
                 strategy: realization.strategy,
                 metadata: [
-                    "fixture": "determine_next_action_program",
+                    "fixture": "select_next_action",
                 ]
             )
         )
     }
 }
 
-extension AgenticProgramsFlowTesting {
-    static func runDetermineNextActionProgram()
+@InferenceRealization
+private struct SelectNextActionRealization {
+    typealias InferenceType =
+        DetermineNextAction
+
+    static let strategy:
+        InferenceStrategyIdentifier = .native_reasoning
+
+    static let instructions =
+        "Select the best next candidate."
+}
+
+extension ProgramsFlowTesting {
+    static func runSelectNextAction()
         async throws
         -> [TestFlowDiagnostic]
     {
@@ -85,40 +102,26 @@ extension AgenticProgramsFlowTesting {
                 ),
             ]
         )
-        let boundRealization = AgentInferenceRealization(
-            strategy: .native_reasoning,
-            modelSelection: .executor,
-            instructions: "Select the best next candidate.",
-            budget: .singleAttempt,
-            adapter: "fixture_adapter"
-        )
 
-        let recorder = DetermineNextActionExecutionRecorder()
-        let executor = DetermineNextActionFixtureExecutor(
+        let recorder = SelectNextActionExecutionRecorder()
+        let executor = SelectNextActionFixtureExecutor(
             selectedActionIdentifier: "publish",
             recorder: recorder
         )
-        let realization = AgentProgramRealization<DetermineNextActionProgram>(
-            id: "fixture.select_next_action",
-            inferences: try AgentProgramInferenceBindings(
-                [
-                    AgentInferenceRealizationBinding(
-                        site: DetermineNextActionProgram.inferenceSite,
-                        inference: DetermineNextAction.definition.identifier,
-                        realization: boundRealization
-                    ),
-                ]
+        let realization = SelectNextAction.realization {
+            SelectNextAction.selection.use(
+                SelectNextActionRealization.self
             )
-        )
-        let inferenceInvoker = AgentProgramInferenceInvoker(
+        }
+        let inferenceInvoker = ProgramInferenceInvoker(
             realization: realization,
             executor: executor
         )
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             inference: inferenceInvoker
         )
 
-        let selected = try await DetermineNextActionProgram().run(
+        let selected = try await SelectNextAction().run(
             input,
             in: context
         )
@@ -127,7 +130,7 @@ extension AgenticProgramsFlowTesting {
         try Expect.equal(
             selected.identifier,
             "publish",
-            "program resolves model selection to the exact supplied candidate"
+            "program resolves the inferred identifier to the exact supplied candidate"
         )
         try Expect.equal(
             selected.description,
@@ -147,30 +150,30 @@ extension AgenticProgramsFlowTesting {
         try Expect.equal(
             observations[0].strategy,
             .native_reasoning,
-            "program inference site uses its bound realization"
+            "program inference site uses its independently bound realization"
         )
 
-        let invalidRecorder = DetermineNextActionExecutionRecorder()
-        let invalidExecutor = DetermineNextActionFixtureExecutor(
+        let invalidRecorder = SelectNextActionExecutionRecorder()
+        let invalidExecutor = SelectNextActionFixtureExecutor(
             selectedActionIdentifier: "invented_action",
             recorder: invalidRecorder
         )
-        let invalidInvoker = AgentProgramInferenceInvoker(
+        let invalidInvoker = ProgramInferenceInvoker(
             realization: realization,
             executor: invalidExecutor
         )
-        let invalidContext = AgentProgramContext(
+        let invalidContext = ProgramContext(
             inference: invalidInvoker
         )
 
         var unavailableIdentifier: String?
 
         do {
-            _ = try await DetermineNextActionProgram().run(
+            _ = try await SelectNextAction().run(
                 input,
                 in: invalidContext
             )
-        } catch DetermineNextActionProgramError.selectedActionUnavailable(
+        } catch SelectNextActionError.selectedActionUnavailable(
             let identifier
         ) {
             unavailableIdentifier = identifier
@@ -185,7 +188,7 @@ extension AgenticProgramsFlowTesting {
         return [
             .field(
                 "program",
-                DetermineNextActionProgram.descriptor.identifier.rawValue
+                SelectNextAction.definition.identifier.rawValue
             ),
             .field(
                 "inference",

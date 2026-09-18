@@ -4,7 +4,8 @@ import AgenticPrograms
 import Foundation
 import TestFlows
 
-private struct BridgeInference: AgentInference {
+@Inference
+private struct BridgeInference {
     struct Input:
         Sendable,
         Codable
@@ -14,29 +15,28 @@ private struct BridgeInference: AgentInference {
 
     typealias Output = String
 
-    static let definition = AgentInferenceDefinition(
-        identifier: "fixture.bridge_inference",
-        purpose: "Prove program inference-site execution bridging."
-    )
+    static let purpose =
+        "Prove Program inference-site execution bridging."
 }
 
-private struct BridgeProgram: AgentProgram {
+@Program
+private struct Bridge {
     typealias Input = String
     typealias Output = String
 
-    static let descriptor = AgentProgramDescriptor(
-        identifier: "fixture.bridge_program",
-        title: "Inference Bridge",
-        summary: "Proves a program inference site can execute a bound inference realization."
-    )
+    static let purpose =
+        "Prove a Program inference site can execute a bound inference realization."
+
+    @InferenceSite
+    static var determine:
+        Site<BridgeInference>
 
     func run(
         _ input: String,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> String {
         try await context.infer(
-            BridgeInference.self,
-            at: "determine",
+            Self.determine,
             input: BridgeInference.Input(
                 value: input
             )
@@ -44,9 +44,38 @@ private struct BridgeProgram: AgentProgram {
     }
 }
 
+extension Bridge:
+    ExecutableProgram
+{}
+
+@Program
+private struct OtherBridge {
+    typealias Input = String
+    typealias Output = String
+
+    static let purpose =
+        "Provide a distinct Program owner for typed-site boundary testing."
+
+    @InferenceSite
+    static var determine:
+        Site<BridgeInference>
+}
+
+@InferenceRealization
+private struct BridgeRealization {
+    typealias InferenceType =
+        BridgeInference
+
+    static let strategy:
+        InferenceStrategyIdentifier = .native_reasoning
+
+    static let instructions =
+        "Determine the fixture result."
+}
+
 private struct BridgeExecutionObservation: Sendable {
-    let inference: AgentInferenceIdentifier
-    let strategy: AgentInferenceStrategyIdentifier
+    let inference: InferenceIdentifier
+    let strategy: InferenceStrategyIdentifier
 }
 
 private actor BridgeExecutionRecorder {
@@ -66,16 +95,20 @@ private actor BridgeExecutionRecorder {
 }
 
 private struct BridgeInferenceExecutor:
-    AgentInferenceExecuting,
+    InferenceExecuting,
     Sendable
 {
     let recorder: BridgeExecutionRecorder
 
-    func execute<Inference: AgentInference>(
-        _ inference: Inference.Type,
-        input: Inference.Input,
-        realization: AgentInferenceRealization
-    ) async throws -> AgentInferenceExecutionResult<Inference.Output> {
+    func execute<InferenceType: Inference>(
+        _ inference: InferenceType.Type,
+        input: InferenceType.Input,
+        realization: InferenceRealizationConfiguration,
+        context: InferenceExecutionContext
+    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
+        _ = input
+        _ = context
+
         await recorder.append(
             BridgeExecutionObservation(
                 inference: inference.definition.identifier,
@@ -87,13 +120,13 @@ private struct BridgeInferenceExecutor:
             "BRIDGED"
         )
         let output = try JSONDecoder().decode(
-            Inference.Output.self,
+            InferenceType.Output.self,
             from: encoded
         )
 
-        return AgentInferenceExecutionResult(
+        return InferenceExecutionResult(
             output: output,
-            record: AgentInferenceExecutionRecord(
+            record: InferenceExecutionRecord(
                 inference: inference.definition.identifier,
                 strategy: realization.strategy,
                 metadata: [
@@ -104,7 +137,7 @@ private struct BridgeInferenceExecutor:
     }
 }
 
-extension AgenticProgramsFlowTesting {
+extension ProgramsFlowTesting {
     static func runProgramInferenceBridge()
         async throws
         -> [TestFlowDiagnostic]
@@ -113,57 +146,42 @@ extension AgenticProgramsFlowTesting {
         let executor = BridgeInferenceExecutor(
             recorder: recorder
         )
-        let boundRealization = AgentInferenceRealization(
-            strategy: .native_reasoning,
-            modelSelection: .executor,
-            instructions: "Determine the fixture result.",
-            budget: .singleAttempt,
-            adapter: "fixture_adapter"
-        )
-        let programRealization = AgentProgramRealization<BridgeProgram>(
-            id: "fixture.bridge_realization",
-            inferences: try AgentProgramInferenceBindings(
-                [
-                    AgentInferenceRealizationBinding(
-                        site: "determine",
-                        inference: BridgeInference.definition.identifier,
-                        realization: boundRealization
-                    ),
-                ]
+        let programRealization = Bridge.realization {
+            Bridge.determine.use(
+                BridgeRealization.self
             )
-        )
+        }
         let resolvedInvocation =
-            try AgentProgramInferenceInvocation<BridgeInference>(
-                BridgeInference.self,
-                at: "determine",
+            try ProgramInferenceInvocation(
+                Bridge.determine,
                 in: programRealization
             )
 
         try Expect.equal(
             resolvedInvocation.site,
-            AgentInferenceSiteIdentifier("determine"),
-            "resolved Program inference preserves its semantic site"
+            Bridge.determine,
+            "resolved Program inference preserves its typed semantic site"
         )
         try Expect.equal(
             resolvedInvocation.inference,
             BridgeInference.definition.identifier,
-            "resolved Program inference preserves its semantic inference identity"
+            "resolved Program inference derives semantic inference identity from the typed site"
         )
         try Expect.equal(
-            resolvedInvocation.realization,
-            boundRealization,
-            "resolved Program inference preserves the exact bound realization"
+            resolvedInvocation.configuration,
+            BridgeRealization.definition.configuration,
+            "resolved Program inference preserves the bound semantic realization configuration"
         )
 
-        let inferenceInvoker = AgentProgramInferenceInvoker(
+        let inferenceInvoker = ProgramInferenceInvoker(
             realization: programRealization,
             executor: executor
         )
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             inference: inferenceInvoker
         )
 
-        let output = try await BridgeProgram().run(
+        let output = try await Bridge().run(
             "hello",
             in: context
         )
@@ -182,7 +200,7 @@ extension AgenticProgramsFlowTesting {
         try Expect.equal(
             observations[0].inference,
             BridgeInference.definition.identifier,
-            "program inference bridge executes the bound semantic inference"
+            "program inference bridge executes the typed site's semantic inference"
         )
         try Expect.equal(
             observations[0].strategy,
@@ -190,24 +208,22 @@ extension AgenticProgramsFlowTesting {
             "program inference bridge forwards the bound realization strategy"
         )
 
-        var missingSite: AgentInferenceSiteIdentifier?
+        var missingSite: InferenceSiteIdentifier?
 
-        let missingInvoker = AgentProgramInferenceInvoker(
-            realization: AgentProgramRealization<BridgeProgram>(
-                id: "fixture.missing_binding"
-            ),
+        let missingInvoker = ProgramInferenceInvoker(
+            realization: Bridge.realization {},
             executor: executor
         )
-        let missingContext = AgentProgramContext(
+        let missingContext = ProgramContext(
             inference: missingInvoker
         )
 
         do {
-            _ = try await BridgeProgram().run(
+            _ = try await Bridge().run(
                 "missing",
                 in: missingContext
             )
-        } catch AgentProgramInferenceInvocationError.bindingUnavailable(
+        } catch ProgramInferenceInvocationError.bindingUnavailable(
             let site,
             _
         ) {
@@ -216,55 +232,31 @@ extension AgenticProgramsFlowTesting {
 
         try Expect.equal(
             missingSite,
-            AgentInferenceSiteIdentifier("determine"),
-            "missing program inference bindings fail at the requested site"
+            Bridge.determine.identifier,
+            "missing Program inference bindings fail at the requested typed site"
         )
 
-        var mismatchExpected: AgentInferenceIdentifier?
-        var mismatchBound: AgentInferenceIdentifier?
-
-        let mismatchedInvoker = AgentProgramInferenceInvoker(
-            realization: AgentProgramRealization<BridgeProgram>(
-                id: "fixture.mismatched_binding",
-                inferences: try AgentProgramInferenceBindings(
-                    [
-                        AgentInferenceRealizationBinding(
-                            site: "determine",
-                            inference: "fixture.other_inference",
-                            realization: boundRealization
-                        ),
-                    ]
-                )
-            ),
-            executor: executor
-        )
-        let mismatchedContext = AgentProgramContext(
-            inference: mismatchedInvoker
-        )
+        var wrongProgram: ProgramIdentifier?
 
         do {
-            _ = try await BridgeProgram().run(
-                "mismatch",
-                in: mismatchedContext
+            _ = try await inferenceInvoker.infer(
+                OtherBridge.determine,
+                input: .init(
+                    value: "wrong-program"
+                )
             )
-        } catch AgentProgramInferenceInvocationError.inferenceMismatch(
+        } catch ProgramInferenceInvocationError.programMismatch(
             _,
-            let expected,
-            let bound
+            _,
+            let received
         ) {
-            mismatchExpected = expected
-            mismatchBound = bound
+            wrongProgram = received
         }
 
         try Expect.equal(
-            mismatchExpected,
-            BridgeInference.definition.identifier,
-            "program inference bridge reports the requested inference on mismatch"
-        )
-        try Expect.equal(
-            mismatchBound,
-            AgentInferenceIdentifier("fixture.other_inference"),
-            "program inference bridge reports the incorrectly bound inference"
+            wrongProgram,
+            OtherBridge.definition.identifier,
+            "erased Program inference invocation rejects a site owned by another Program"
         )
 
         let finalObservations = await recorder.snapshot()
@@ -272,7 +264,7 @@ extension AgenticProgramsFlowTesting {
         try Expect.equal(
             finalObservations.count,
             1,
-            "invalid site bindings are rejected before inference execution"
+            "invalid Program/site ownership is rejected before inference execution"
         )
 
         return [
@@ -293,8 +285,8 @@ extension AgenticProgramsFlowTesting {
                 missingSite?.rawValue ?? "nil"
             ),
             .field(
-                "mismatch_bound",
-                mismatchBound?.rawValue ?? "nil"
+                "wrong_program",
+                wrongProgram?.rawValue ?? "nil"
             ),
         ]
     }

@@ -3,12 +3,12 @@ import AgenticPrograms
 import TestFlows
 
 private struct ProgramToolFailureFixtureInvoker:
-    AgentProgramToolInvoking
+    ProgramToolInvoking
 {
-    let failure: AgentProgramToolFailure
+    let failure: ProgramToolFailure
 
     func invoke<Input, Output>(
-        _ identifier: AgentToolIdentifier,
+        _ identifier: ToolIdentifier,
         input: Input,
         as output: Output.Type
     ) async throws -> Output
@@ -23,22 +23,22 @@ private struct ProgramToolFailureFixtureInvoker:
     }
 }
 
-extension AgenticProgramsFlowTesting {
+extension ProgramsFlowTesting {
     static func runProgramToolFailureHandling()
         async throws
         -> [TestFlowDiagnostic]
     {
-        let identifier: AgentToolIdentifier =
+        let identifier: ToolIdentifier =
             "fixture.program_tool_failure"
-        let result = AgentToolResult(
+        let result = ToolResult(
             toolCallID: "fixture-program-tool-failure-call",
-            name: identifier.rawValue,
+            tool: identifier,
             output: .null,
             isError: true
         )
-        let context = AgentProgramContext(
+        let context = ProgramContext(
             tools: ProgramToolFailureFixtureInvoker(
-                failure: AgentProgramToolFailure(
+                failure: ProgramToolFailure(
                     tool: identifier,
                     result: result
                 )
@@ -53,7 +53,7 @@ extension AgenticProgramsFlowTesting {
             guard
                 failure.tool == identifier,
                 failure.result.toolCallID == result.toolCallID,
-                failure.result.name == result.name,
+                failure.result.tool == result.tool,
                 failure.result.isError
             else {
                 throw failure
@@ -70,7 +70,7 @@ extension AgenticProgramsFlowTesting {
             guard
                 failure.tool == identifier,
                 failure.result.toolCallID == result.toolCallID,
-                failure.result.name == result.name,
+                failure.result.tool == result.tool,
                 failure.result.isError
             else {
                 return .propagate
@@ -89,11 +89,11 @@ extension AgenticProgramsFlowTesting {
             ) { _ in
                 .propagate
             }
-        } catch let failure as AgentProgramToolFailure {
+        } catch let failure as ProgramToolFailure {
             propagated =
                 failure.tool == identifier
                 && failure.result.toolCallID == result.toolCallID
-                && failure.result.name == result.name
+                && failure.result.tool == result.tool
                 && failure.result.isError
         }
 
@@ -117,7 +117,10 @@ extension AgenticProgramsFlowTesting {
             .field("manual", manual),
             .field("disposition", disposition),
             .field("propagated", String(propagated)),
-            .field("failed_result", result.name ?? "<none>"),
+            .field(
+                "failed_result",
+                result.tool?.rawValue ?? "<none>"
+            ),
         ]
     }
 }

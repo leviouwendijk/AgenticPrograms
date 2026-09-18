@@ -78,6 +78,10 @@ let package = Package(
                     package: "AgenticInference"
                 ),
                 .product(
+                    name: "Primitives",
+                    package: "Primitives"
+                ),
+                .product(
                     name: "TestFlows",
                     package: "TestFlows"
                 ),
