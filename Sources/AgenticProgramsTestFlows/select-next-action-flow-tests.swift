@@ -49,7 +49,7 @@ private struct SelectNextActionFixtureExecutor:
         )
 
         let encoded = try JSONEncoder().encode(
-            DetermineNextAction.Output(
+            Standard.Inferences.DetermineNextAction.Output(
                 selectedActionIdentifier: selectedActionIdentifier
             )
         )
@@ -74,7 +74,7 @@ private struct SelectNextActionFixtureExecutor:
 @InferenceRealization
 private struct SelectNextActionRealization {
     typealias InferenceType =
-        DetermineNextAction
+        Standard.Inferences.DetermineNextAction
 
     static let strategy:
         InferenceStrategyIdentifier = .native_reasoning
@@ -88,7 +88,7 @@ extension ProgramsFlowTesting {
         async throws
         -> [TestFlowDiagnostic]
     {
-        let input = DetermineNextAction.Input(
+        let input = Standard.Inferences.DetermineNextAction.Input(
             goal: "Finish publishing the completed change.",
             state: "Implementation and tests are complete.",
             candidates: [
@@ -108,8 +108,8 @@ extension ProgramsFlowTesting {
             selectedActionIdentifier: "publish",
             recorder: recorder
         )
-        let realization = SelectNextAction.realization {
-            SelectNextAction.selection.use(
+        let realization = Standard.Programs.SelectNextAction.realization {
+            Standard.Programs.SelectNextAction.selection.use(
                 SelectNextActionRealization.self
             )
         }
@@ -121,12 +121,17 @@ extension ProgramsFlowTesting {
             inference: inferenceInvoker
         )
 
-        let selected = try await SelectNextAction().run(
+        let selected = try await Standard.Programs.SelectNextAction().run(
             input,
             in: context
         )
         let observations = await recorder.snapshot()
 
+        try Expect.equal(
+            Standard.Programs.SelectNextAction.definition.identifier,
+            ProgramIdentifier("standard.programs.select_next_action"),
+            "standard SelectNextAction exposes namespaced semantic Program identifier"
+        )
         try Expect.equal(
             selected.identifier,
             "publish",
@@ -144,8 +149,8 @@ extension ProgramsFlowTesting {
         )
         try Expect.equal(
             observations[0].inference,
-            DetermineNextAction.definition.identifier,
-            "program invokes DetermineNextAction rather than embedding decision semantics"
+            Standard.Inferences.DetermineNextAction.definition.identifier,
+            "program invokes Standard.Inferences.DetermineNextAction rather than embedding decision semantics"
         )
         try Expect.equal(
             observations[0].strategy,
@@ -169,11 +174,11 @@ extension ProgramsFlowTesting {
         var unavailableIdentifier: String?
 
         do {
-            _ = try await SelectNextAction().run(
+            _ = try await Standard.Programs.SelectNextAction().run(
                 input,
                 in: invalidContext
             )
-        } catch SelectNextActionError.selectedActionUnavailable(
+        } catch Standard.Programs.SelectNextActionError.selectedActionUnavailable(
             let identifier
         ) {
             unavailableIdentifier = identifier
@@ -188,7 +193,7 @@ extension ProgramsFlowTesting {
         return [
             .field(
                 "program",
-                SelectNextAction.definition.identifier.rawValue
+                Standard.Programs.SelectNextAction.definition.identifier.rawValue
             ),
             .field(
                 "inference",

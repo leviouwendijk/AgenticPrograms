@@ -53,16 +53,16 @@ private struct ReviewedActionFixtureExecutor:
         let encoded: Data
 
         switch inference.definition.identifier {
-        case DetermineNextAction.definition.identifier:
+        case Standard.Inferences.DetermineNextAction.definition.identifier:
             encoded = try JSONEncoder().encode(
-                DetermineNextAction.Output(
+                Standard.Inferences.DetermineNextAction.Output(
                     selectedActionIdentifier: selectedActionIdentifier
                 )
             )
 
-        case AssessCandidateAction.definition.identifier:
+        case Standard.Inferences.AssessCandidateAction.definition.identifier:
             encoded = try JSONEncoder().encode(
-                AssessCandidateAction.Output(
+                Standard.Inferences.AssessCandidateAction.Output(
                     acceptable: acceptable,
                     assessment: assessment
                 )
@@ -99,7 +99,7 @@ private enum ReviewedActionFixtureError: Error {
 @InferenceRealization
 private struct ReviewedSelectionRealization {
     typealias InferenceType =
-        DetermineNextAction
+        Standard.Inferences.DetermineNextAction
 
     static let strategy:
         InferenceStrategyIdentifier = .native_reasoning
@@ -111,7 +111,7 @@ private struct ReviewedSelectionRealization {
 @InferenceRealization
 private struct ReviewedAssessmentRealization {
     typealias InferenceType =
-        AssessCandidateAction
+        Standard.Inferences.AssessCandidateAction
 
     static let strategy:
         InferenceStrategyIdentifier = .direct
@@ -125,7 +125,7 @@ extension ProgramsFlowTesting {
         async throws
         -> [TestFlowDiagnostic]
     {
-        let input = DetermineNextAction.Input(
+        let input = Standard.Inferences.DetermineNextAction.Input(
             goal: "Publish the completed change safely.",
             state: "Implementation and all tests are complete.",
             candidates: [
@@ -147,11 +147,11 @@ extension ProgramsFlowTesting {
             assessment: "The completed and tested change is ready to publish.",
             recorder: recorder
         )
-        let realization = ReviewedActionSelection.realization {
-            ReviewedActionSelection.selection.use(
+        let realization = Standard.Programs.ReviewedActionSelection.realization {
+            Standard.Programs.ReviewedActionSelection.selection.use(
                 ReviewedSelectionRealization.self
             )
-            ReviewedActionSelection.assessment.use(
+            Standard.Programs.ReviewedActionSelection.assessment.use(
                 ReviewedAssessmentRealization.self
             )
         }
@@ -163,12 +163,17 @@ extension ProgramsFlowTesting {
             inference: invoker
         )
 
-        let output = try await ReviewedActionSelection().run(
+        let output = try await Standard.Programs.ReviewedActionSelection().run(
             input,
             in: context
         )
         let observations = await recorder.snapshot()
 
+        try Expect.equal(
+            Standard.Programs.ReviewedActionSelection.definition.identifier,
+            ProgramIdentifier("standard.programs.reviewed_action_selection"),
+            "standard ReviewedActionSelection exposes namespaced semantic Program identifier"
+        )
         try Expect.equal(
             output.candidate.identifier,
             "publish",
@@ -186,7 +191,7 @@ extension ProgramsFlowTesting {
         )
         try Expect.equal(
             observations[0].inference,
-            DetermineNextAction.definition.identifier,
+            Standard.Inferences.DetermineNextAction.definition.identifier,
             "first stage selects the next action"
         )
         try Expect.equal(
@@ -196,7 +201,7 @@ extension ProgramsFlowTesting {
         )
         try Expect.equal(
             observations[1].inference,
-            AssessCandidateAction.definition.identifier,
+            Standard.Inferences.AssessCandidateAction.definition.identifier,
             "second stage assesses the selected action"
         )
         try Expect.equal(
@@ -223,11 +228,11 @@ extension ProgramsFlowTesting {
         var rejectedIdentifier: String?
 
         do {
-            _ = try await ReviewedActionSelection().run(
+            _ = try await Standard.Programs.ReviewedActionSelection().run(
                 input,
                 in: rejectedContext
             )
-        } catch ReviewedActionSelectionError.selectedActionRejected(
+        } catch Standard.Programs.ReviewedActionSelectionError.selectedActionRejected(
             let identifier,
             _
         ) {
@@ -243,7 +248,7 @@ extension ProgramsFlowTesting {
         return [
             .field(
                 "program",
-                ReviewedActionSelection.definition.identifier.rawValue
+                Standard.Programs.ReviewedActionSelection.definition.identifier.rawValue
             ),
             .field(
                 "selected",

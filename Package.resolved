@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "2ed177b698663b409867542874368d989814bd9e"
+        "revision" : "d1c947542c7de4e7701155912cb2309c09fdb379"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "fcb086efd15090dadb80627aba4b6642f772b254"
+        "revision" : "e4d6d57e2a7040cd1b5155d2969774e2c4a708ad"
       }
     },
     {
