@@ -3,16 +3,14 @@ import AgenticPrograms
 import TestFlows
 
 private struct NestedProgramInput:
-    Sendable,
-    Codable,
+    SemanticInput,
     Equatable
 {
     let value: String
 }
 
 private struct NestedProgramOutput:
-    Sendable,
-    Codable,
+    SemanticOutput,
     Equatable
 {
     let value: String

@@ -189,16 +189,14 @@ extension ProgramsFlowTesting {
 }
 
 private struct EchoInput:
-    Sendable,
-    Codable,
+    SemanticInput,
     Hashable
 {
     let value: String
 }
 
 private struct EchoOutput:
-    Sendable,
-    Codable,
+    SemanticOutput,
     Hashable
 {
     let value: String
