@@ -2,14 +2,14 @@ import Agentic
 import AgenticInference
 import AgenticPrograms
 import Foundation
+import Macros
+import Schema
 import TestFlows
 
 @Inference
 private struct FailureInference {
-    struct Input:
-        Sendable,
-        Codable
-    {
+    @JSONSchema
+    struct Input: Source {
         let value: String
     }
 
@@ -72,19 +72,10 @@ private struct ProgramInferenceFailureFixtureExecutor:
     InferenceExecuting,
     Sendable
 {
-    func execute<InferenceType: Inference>(
-        _ inference: InferenceType.Type,
-        input: InferenceType.Input,
-        realization: InferenceRealizationConfiguration,
-        context: InferenceExecutionContext
-    ) async throws
-        -> InferenceExecutionResult<InferenceType.Output>
-    {
-        _ = inference
-        _ = input
-        _ = realization
-        _ = context
-
+    func execute(
+        _ invocation: InferenceInvocation
+    ) async throws -> InferenceInvocationResult {
+        _ = invocation
         throw ProgramInferenceFailureFixtureError.failed
     }
 }
@@ -95,19 +86,10 @@ private struct ProgramInferenceCanonicalFailureFixtureExecutor:
 {
     let failure: InferenceExecutionFailure
 
-    func execute<InferenceType: Inference>(
-        _ inference: InferenceType.Type,
-        input: InferenceType.Input,
-        realization: InferenceRealizationConfiguration,
-        context: InferenceExecutionContext
-    ) async throws
-        -> InferenceExecutionResult<InferenceType.Output>
-    {
-        _ = inference
-        _ = input
-        _ = realization
-        _ = context
-
+    func execute(
+        _ invocation: InferenceInvocation
+    ) async throws -> InferenceInvocationResult {
+        _ = invocation
         throw failure
     }
 }

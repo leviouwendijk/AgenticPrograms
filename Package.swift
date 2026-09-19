@@ -39,6 +39,14 @@ let package = Package(
             branch: "master"
         ),
         .package(
+            url: "https://github.com/leviouwendijk/Schema.git",
+            branch: "master"
+        ),
+        .package(
+            url: "https://github.com/leviouwendijk/Macros.git",
+            branch: "master"
+        ),
+        .package(
             url: "https://github.com/leviouwendijk/TestFlows.git",
             branch: "master"
         ),
@@ -63,6 +71,14 @@ let package = Package(
                     name: "Primitives",
                     package: "Primitives"
                 ),
+                .product(
+                    name: "Schema",
+                    package: "Schema"
+                ),
+                .product(
+                    name: "Macros",
+                    package: "Macros"
+                ),
             ]
         ),
         .executableTarget(
@@ -80,6 +96,14 @@ let package = Package(
                 .product(
                     name: "Primitives",
                     package: "Primitives"
+                ),
+                .product(
+                    name: "Schema",
+                    package: "Schema"
+                ),
+                .product(
+                    name: "Macros",
+                    package: "Macros"
                 ),
                 .product(
                     name: "TestFlows",

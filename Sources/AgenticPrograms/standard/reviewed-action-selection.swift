@@ -1,6 +1,8 @@
 import Agentic
 import AgenticInference
 import Foundation
+import Macros
+import Schema
 
 extension Standard.Programs {
     public enum ReviewedActionSelectionError:
@@ -32,9 +34,9 @@ extension Standard.Programs {
     public struct ReviewedActionSelection {
         public typealias Input = Standard.Inferences.DetermineNextAction.Input
 
+        @JSONSchema
         public struct Output:
-            Sendable,
-            Codable,
+            Result,
             Hashable
         {
             public var candidate: Standard.Inferences.DetermineNextAction.Candidate

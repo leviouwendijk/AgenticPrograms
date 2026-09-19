@@ -5,8 +5,8 @@ import Foundation
 /// One Program-authored typed inference site after its realization binding has
 /// been resolved.
 ///
-/// Program binding semantics remain here; inference execution itself remains in
-/// AgenticInference.
+/// Program binding semantics remain here; typed inference execution is routed
+/// through the bound InferenceSite.
 public struct ProgramInferenceInvocation<
     ProgramType: Program,
     InferenceType: Inference
@@ -49,8 +49,8 @@ public struct ProgramInferenceInvocation<
         -> InferenceExecutionResult<InferenceType.Output>
     {
         do {
-            return try await executor.execute(
-                InferenceType.self,
+            return try await site.execute(
+                using: executor,
                 input: input,
                 realization: configuration
             )

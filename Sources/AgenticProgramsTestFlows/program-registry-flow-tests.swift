@@ -1,6 +1,8 @@
 import Agentic
 import AgenticPrograms
+import Macros
 import Primitives
+import Schema
 import TestFlows
 
 extension ProgramsFlowTesting {
@@ -188,15 +190,17 @@ extension ProgramsFlowTesting {
     }
 }
 
+@JSONSchema
 private struct EchoInput:
-    SemanticInput,
+    Source,
     Hashable
 {
     let value: String
 }
 
+@JSONSchema
 private struct EchoOutput:
-    SemanticOutput,
+    Result,
     Hashable
 {
     let value: String

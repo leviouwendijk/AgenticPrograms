@@ -2,14 +2,14 @@ import Agentic
 import AgenticInference
 import AgenticPrograms
 import Foundation
+import Macros
+import Schema
 import TestFlows
 
 @Inference
 private struct BridgeInference {
-    struct Input:
-        Sendable,
-        Codable
-    {
+    @JSONSchema
+    struct Input: Source {
         let value: String
     }
 
@@ -103,35 +103,25 @@ private struct BridgeInferenceExecutor:
 {
     let recorder: BridgeExecutionRecorder
 
-    func execute<InferenceType: Inference>(
-        _ inference: InferenceType.Type,
-        input: InferenceType.Input,
-        realization: InferenceRealizationConfiguration,
-        context: InferenceExecutionContext
-    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
-        _ = input
-        _ = context
-
+    func execute(
+        _ invocation: InferenceInvocation
+    ) async throws -> InferenceInvocationResult {
         await recorder.append(
             BridgeExecutionObservation(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy
             )
         )
 
         let encoded = try JSONEncoder().encode(
             "BRIDGED"
         )
-        let output = try JSONDecoder().decode(
-            InferenceType.Output.self,
-            from: encoded
-        )
 
-        return InferenceExecutionResult(
-            output: output,
+        return InferenceInvocationResult(
+            output: encoded,
             record: InferenceExecutionRecord(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy,
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy,
                 metadata: [
                     "fixture": "program_inference_bridge",
                 ]

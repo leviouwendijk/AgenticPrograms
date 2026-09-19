@@ -1,16 +1,20 @@
 import Agentic
 import AgenticPrograms
+import Macros
+import Schema
 import TestFlows
 
+@JSONSchema
 private struct NestedProgramInput:
-    SemanticInput,
+    Source,
     Equatable
 {
     let value: String
 }
 
+@JSONSchema
 private struct NestedProgramOutput:
-    SemanticOutput,
+    Result,
     Equatable
 {
     let value: String

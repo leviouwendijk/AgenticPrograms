@@ -32,19 +32,13 @@ private struct SelectNextActionFixtureExecutor:
     let selectedActionIdentifier: String
     let recorder: SelectNextActionExecutionRecorder
 
-    func execute<InferenceType: Inference>(
-        _ inference: InferenceType.Type,
-        input: InferenceType.Input,
-        realization: InferenceRealizationConfiguration,
-        context: InferenceExecutionContext
-    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
-        _ = input
-        _ = context
-
+    func execute(
+        _ invocation: InferenceInvocation
+    ) async throws -> InferenceInvocationResult {
         await recorder.append(
             SelectNextActionExecutionObservation(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy
             )
         )
 
@@ -53,16 +47,12 @@ private struct SelectNextActionFixtureExecutor:
                 selectedActionIdentifier: selectedActionIdentifier
             )
         )
-        let output = try JSONDecoder().decode(
-            InferenceType.Output.self,
-            from: encoded
-        )
 
-        return InferenceExecutionResult(
-            output: output,
+        return InferenceInvocationResult(
+            output: encoded,
             record: InferenceExecutionRecord(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy,
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy,
                 metadata: [
                     "fixture": "select_next_action",
                 ]

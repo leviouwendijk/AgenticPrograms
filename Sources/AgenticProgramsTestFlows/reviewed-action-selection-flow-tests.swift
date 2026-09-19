@@ -34,25 +34,19 @@ private struct ReviewedActionFixtureExecutor:
     let assessment: String
     let recorder: ReviewedActionRecorder
 
-    func execute<InferenceType: Inference>(
-        _ inference: InferenceType.Type,
-        input: InferenceType.Input,
-        realization: InferenceRealizationConfiguration,
-        context: InferenceExecutionContext
-    ) async throws -> InferenceExecutionResult<InferenceType.Output> {
-        _ = input
-        _ = context
-
+    func execute(
+        _ invocation: InferenceInvocation
+    ) async throws -> InferenceInvocationResult {
         await recorder.append(
             ReviewedActionObservation(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy
             )
         )
 
         let encoded: Data
 
-        switch inference.definition.identifier {
+        switch invocation.definition.identifier {
         case Standard.Inferences.DetermineNextAction.definition.identifier:
             encoded = try JSONEncoder().encode(
                 Standard.Inferences.DetermineNextAction.Output(
@@ -70,20 +64,15 @@ private struct ReviewedActionFixtureExecutor:
 
         default:
             throw ReviewedActionFixtureError.unexpectedInference(
-                inference.definition.identifier
+                invocation.definition.identifier
             )
         }
 
-        let output = try JSONDecoder().decode(
-            InferenceType.Output.self,
-            from: encoded
-        )
-
-        return InferenceExecutionResult(
-            output: output,
+        return InferenceInvocationResult(
+            output: encoded,
             record: InferenceExecutionRecord(
-                inference: inference.definition.identifier,
-                strategy: realization.strategy,
+                inference: invocation.definition.identifier,
+                strategy: invocation.realization.strategy,
                 metadata: [
                     "fixture": "reviewed_action_selection",
                 ]
