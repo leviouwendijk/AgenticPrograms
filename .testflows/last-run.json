@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-09-18T22:17:04Z",
+  "generated_at" : "2026-09-19T17:13:47Z",
   "passed" : 10,
   "results" : [
     {
       "display_name" : "program-registry",
-      "duration_seconds" : 0.0016930103302001953,
+      "duration_seconds" : 0.0015499591827392578,
       "name" : "program-registry",
       "status" : "passed",
       "tags" : [
@@ -20,7 +20,7 @@
     },
     {
       "display_name" : "program-registration-composition",
-      "duration_seconds" : 0.0003000497817993164,
+      "duration_seconds" : 0.00028896331787109375,
       "name" : "program-registration-composition",
       "status" : "passed",
       "tags" : [
@@ -33,7 +33,7 @@
     },
     {
       "display_name" : "program-inference-bridge",
-      "duration_seconds" : 0.0006749629974365234,
+      "duration_seconds" : 0.0007530450820922852,
       "name" : "program-inference-bridge",
       "status" : "passed",
       "tags" : [
@@ -46,7 +46,7 @@
     },
     {
       "display_name" : "select-next-action",
-      "duration_seconds" : 0.0007290840148925781,
+      "duration_seconds" : 0.0004100799560546875,
       "name" : "select-next-action",
       "status" : "passed",
       "tags" : [
@@ -59,7 +59,7 @@
     },
     {
       "display_name" : "nested-program-composition",
-      "duration_seconds" : 0.0002690553665161133,
+      "duration_seconds" : 0.00023794174194335938,
       "name" : "nested-program-composition",
       "status" : "passed",
       "tags" : [
@@ -72,7 +72,7 @@
     },
     {
       "display_name" : "reviewed-action-selection",
-      "duration_seconds" : 0.00026595592498779297,
+      "duration_seconds" : 0.0003440380096435547,
       "name" : "reviewed-action-selection",
       "status" : "passed",
       "tags" : [
@@ -86,7 +86,7 @@
     },
     {
       "display_name" : "program-realization-parsing",
-      "duration_seconds" : 0.0012249946594238281,
+      "duration_seconds" : 0.0005199909210205078,
       "name" : "program-realization-parsing",
       "status" : "passed",
       "tags" : [
@@ -100,7 +100,7 @@
     },
     {
       "display_name" : "program-user-input-context",
-      "duration_seconds" : 0.00037097930908203125,
+      "duration_seconds" : 0.0005929470062255859,
       "name" : "program-user-input-context",
       "status" : "passed",
       "tags" : [
@@ -113,7 +113,7 @@
     },
     {
       "display_name" : "program-tool-failure-handling",
-      "duration_seconds" : 8.189678192138672e-05,
+      "duration_seconds" : 8.392333984375e-05,
       "name" : "program-tool-failure-handling",
       "status" : "passed",
       "tags" : [
@@ -127,7 +127,7 @@
     },
     {
       "display_name" : "program-inference-failure-handling",
-      "duration_seconds" : 0.0005019903182983398,
+      "duration_seconds" : 0.0009109973907470703,
       "name" : "program-inference-failure-handling",
       "status" : "passed",
       "tags" : [
